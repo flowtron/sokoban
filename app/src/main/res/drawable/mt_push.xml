@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24.0"
+    android:viewportHeight="24.0">
+    <!-- background -->
+    <path
+        android:fillColor="#ffdb7100"
+        android:pathData="M0,0H24L24,24H-24,0z" />
+    <!-- eye left white -->
+    <path
+        android:fillColor="#ffffffff"
+        android:pathData="M4,8h5v4h-5z" />
+    <!-- eye left black -->
+    <path
+        android:fillColor="#ff000000"
+        android:pathData="M6,10h2v2h-2z" />
+    <!-- eye right white -->
+    <path
+        android:fillColor="#ffffffff"
+        android:pathData="M14,8h5v4h-5z" />
+    <!-- eye right black -->
+    <path
+        android:fillColor="#ff000000"
+        android:pathData="M16,10h2v2h-2z" />
+
+
+    <path
+        android:strokeColor="#ff000000"
+        android:strokeWidth=".1"
+        android:pathData="M5,19 H19" />
+
+    <!-- mouth -->
+    <path
+        android:fillColor="#aff8f8f8"
+        android:pathData="M5,18h14l0,2h-14l0,-2z" />
+    <!--<path
+        android:fillColor="#fff8f8f8"
+        android:pathData="M6,18h12l0,2h-12l0,0z" />-->
+    <!-- teeth horizon -->
+    <!--<path
+        android:strokeColor="#ff000000"
+        android:strokeWidth=".1"
+        android:pathData="M5,19 H19" />-->
+    <!-- teeth slots -->
+    <path
+        android:strokeColor="#ff000000"
+        android:strokeWidth=".1"
+        android:pathData="M9,18 v2" />
+    <path
+        android:strokeColor="#ff000000"
+        android:strokeWidth=".1"
+        android:pathData="M11,18 v2" />
+    <path
+        android:strokeColor="#ff000000"
+        android:strokeWidth=".1"
+        android:pathData="M13,18 v2" />
+    <path
+        android:strokeColor="#ff000000"
+        android:strokeWidth=".1"
+        android:pathData="M15,18 v2" />
+    <path
+        android:strokeColor="#ff000000"
+        android:strokeWidth=".1"
+        android:pathData="M17,18 v2" />
+    <path
+        android:strokeColor="#ff000000"
+        android:strokeWidth=".1"
+        android:pathData="M7,18 v2" />
+</vector>
+
