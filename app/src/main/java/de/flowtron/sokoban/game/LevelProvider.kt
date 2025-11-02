@@ -39,7 +39,8 @@ class LevelProvider @Inject constructor(
             val worlds = assetReader.listSubdirectories("$COMBO_ASSET_DIR/$combo")
             val mapOfWorld: MutableMap<String, List<String>> = mutableMapOf()
             worlds.sortedBy {
-                it.toInt()
+                //it.toInt() // we used to force our world names to be numeric .. no real need
+                it // I hope this is a acceptable lexical ordering by default otherwise we'll need a sorting method here
             }.forEach { world ->
                 val levels = assetReader.listFilesWithExtension("$COMBO_ASSET_DIR/$combo/$world", LEVEL_EXTENSION)
                 mapOfWorld[world] = levels.map { it.split('.')[0] }

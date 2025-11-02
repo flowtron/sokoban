@@ -9,17 +9,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -35,19 +32,19 @@ import de.flowtron.sokoban.game.LevelProgress
 import de.flowtron.sokoban.next
 import de.flowtron.sokoban.safeLaunch
 import de.flowtron.sokoban.state.StateFlowHolder
-import de.flowtron.sokoban.ui.game.InformationDisplay
 import de.flowtron.sokoban.ui.game.InteractionControlWidget
 import de.flowtron.sokoban.ui.game.VisualDataRender
 import de.flowtron.sokoban.ui.models.GameViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable.isActive
 import kotlinx.coroutines.delay
 import kotlin.math.abs
 
 @Preview(showBackground = true)
 @Composable
-fun GameScreenPreview() { GameScreen() }
+fun GameScreenPreview() {
+    GameScreen()
+}
 
 @Composable
 fun GameScreen(
@@ -60,10 +57,14 @@ fun GameScreen(
     //val coroutineContext = coroutineScope.coroutineContext
     requireNotNull(stateFlowHolder) // see above re:nullable - also below re: default composable
     requireNotNull(levelProgress)
-    RenderGameScreen( coroutineScope, modifier, stateFlowHolder, levelProgress, gameViewModel)
+    RenderGameScreen(coroutineScope, modifier, stateFlowHolder, levelProgress, gameViewModel)
 }
 
-private fun setSolutionDelta(stateFlowHolder: StateFlowHolder, levelProgress: LevelProgress, di: Int) {
+private fun setSolutionDelta(
+    stateFlowHolder: StateFlowHolder,
+    levelProgress: LevelProgress,
+    di: Int
+) {
     val current = stateFlowHolder.movementSolutionStateFlow.indexStateFlow.value
     stateFlowHolder.movementSolutionStateFlow.setIndex(current + di)
     performPartialSolution(stateFlowHolder, levelProgress)
@@ -102,24 +103,28 @@ private fun setSolutionDelta(stateFlowHolder: StateFlowHolder, levelProgress: Le
 private fun performPartialSolution(stateFlowHolder: StateFlowHolder, levelProgress: LevelProgress) {
     val partialSolution = stateFlowHolder.movementSolutionStateFlow.partialSolution()
 
-    var currentMap = requireNotNull(stateFlowHolder.levelOriginalStateFlow.levelOriginal.value) // start with the original map configuration
+    var currentMap =
+        requireNotNull(stateFlowHolder.levelOriginalStateFlow.levelOriginal.value) // start with the original map configuration
     var pusherAt = requireNotNull(currentMap.findPlayer())
 
     // perform every step of the partial solution onward from an original configuration
     val dondeEsta = partialSolution.toDirections()
     dondeEsta.forEach {
         //Log.i("GameScreen", "partialSolution char: $it")
-        val direction = when(it) {
-            'E' -> Coordinates(1,0)
-            'N' -> Coordinates(0,-1)
-            'W' -> Coordinates(-1,0)
-            'S' -> Coordinates(0,1)
+        val direction = when (it) {
+            'E' -> Coordinates(1, 0)
+            'N' -> Coordinates(0, -1)
+            'W' -> Coordinates(-1, 0)
+            'S' -> Coordinates(0, 1)
             else -> Coordinates(0, 0)
         }
 
         val allowed = levelProgress.allowedToMove(currentMap, pusherAt, direction)
-        if( !allowed ) {
-            Log.e("GameScreen", "This is bad.") // The history says to go, but our reality check says that's not allowed. Very bad!
+        if (!allowed) {
+            Log.e(
+                "GameScreen",
+                "This is bad."
+            ) // The history says to go, but our reality check says that's not allowed. Very bad!
         }
 
         val changedMap = levelProgress.performMove(currentMap, pusherAt, direction)
@@ -180,7 +185,7 @@ private fun resetOffset(stateFlowHolder: StateFlowHolder) {
 private fun getMovementStream(stream: String, index: Int): AnnotatedString {
     val windowSize = 3
     val beginIndex = (index - windowSize).coerceAtLeast(0)
-    val elongateRight = if(beginIndex < windowSize){
+    val elongateRight = if (beginIndex < windowSize) {
         windowSize - beginIndex
     } else {
         0
@@ -210,8 +215,7 @@ private fun onSolutionClicked(stateFlowHolder: StateFlowHolder, gameViewModel: G
     val gameDataInfo = stateFlowHolder.gameDataInfoStateFlow.gameDataInfo.value
     if (gameDataInfo != null) {
         Log.d("GameScreen", "SOLUTION may be found at ${gameDataInfo.getSolutionFilepath()}")
-        val movementHistory =
-            gameViewModel.loadSolution(gameDataInfo)
+        val movementHistory = gameViewModel.loadSolution(gameDataInfo)
         if (movementHistory != null) {
             //Log.d("GameScreen", "You got HELP! The solution is: ${movementHistory.toDirections()}")
             stateFlowHolder.movementSolutionStateFlow.setMovementSolution(movementHistory)
@@ -306,21 +310,27 @@ fun RenderGameScreen(
             .fillMaxSize()
             .pointerInput(Unit) {
                 detectDragGestures(
-                    onDragStart = { endSwipeAction(
-                        dragPusherXState = dragPusherX,
-                        dragPusherYState = dragPusherY,
-                        swipeJobState = swipeJob
-                    ) },
-                    onDragEnd = { endSwipeAction(
-                        dragPusherXState = dragPusherX,
-                        dragPusherYState = dragPusherY,
-                        swipeJobState = swipeJob
-                    ) },
-                    onDragCancel = { endSwipeAction(
-                        dragPusherXState = dragPusherX,
-                        dragPusherYState = dragPusherY,
-                        swipeJobState = swipeJob
-                    ) },
+                    onDragStart = {
+                        endSwipeAction(
+                            dragPusherXState = dragPusherX,
+                            dragPusherYState = dragPusherY,
+                            swipeJobState = swipeJob
+                        )
+                    },
+                    onDragEnd = {
+                        endSwipeAction(
+                            dragPusherXState = dragPusherX,
+                            dragPusherYState = dragPusherY,
+                            swipeJobState = swipeJob
+                        )
+                    },
+                    onDragCancel = {
+                        endSwipeAction(
+                            dragPusherXState = dragPusherX,
+                            dragPusherYState = dragPusherY,
+                            swipeJobState = swipeJob
+                        )
+                    },
                     onDrag = { change, dragAmount ->
                         change.consume()
                         dragPusherX.floatValue += dragAmount.x
@@ -384,8 +394,8 @@ fun RenderGameScreen(
             onDownClickOffset = { setOffsetBy(stateFlowHolder, 0, +1) },
 
             //                Log.d("SolutionControls STEP1_LEFT", "setDelta -1")
-            onLeftClickSolution = { setSolutionDelta(stateFlowHolder, levelProgress,-1) },
-            onRightClickSolution = { setSolutionDelta(stateFlowHolder, levelProgress,+1) },
+            onLeftClickSolution = { setSolutionDelta(stateFlowHolder, levelProgress, -1) },
+            onRightClickSolution = { setSolutionDelta(stateFlowHolder, levelProgress, +1) },
 
             //onSliderSolution = { data -> setSolutionIndex(stateFlowHolder, levelProgress, data) }, // FIXME never used!!!!
         )

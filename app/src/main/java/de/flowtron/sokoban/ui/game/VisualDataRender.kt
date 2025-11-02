@@ -82,7 +82,8 @@ fun VisualDataRender(stateFlowHolder: StateFlowHolder, gameViewModel: GameViewMo
                     } else {
                         val isMapFinished = stateFlowHolder.mapFinishedStateFlow.finished.value
                         if (isMapFinished) {
-                            this.proColorFilter(ColorFilter.colorMatrix(greyscaleMatrix()))
+                            //this.proColorFilter(ColorFilter.colorMatrix(greyscaleMatrix()))
+                            this.proColorFilter(ColorFilter.colorMatrix(greenTintMatrix()))
                         } else {
                             this
                         }
@@ -162,6 +163,12 @@ private fun greyscaleMatrix() = ColorMatrix(
         0f, 0f, 0f, 1f, 0f,
     )
 )
+
+private fun greenTintMatrix(degrees: Float = 45f): ColorMatrix {
+    val m = ColorMatrix()
+    m.setToRotateGreen(degrees)
+    return m
+}
 
 private fun Modifier.proColorFilter(colorFilter: ColorFilter): Modifier {
     return this.drawWithCache {

@@ -3,6 +3,7 @@ package de.flowtron.sokoban.ui.models
 import android.content.res.AssetManager
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.flowtron.sokoban.game.Cell.GOAL
 import de.flowtron.sokoban.game.Coordinates
@@ -11,6 +12,8 @@ import de.flowtron.sokoban.game.LevelLoader
 import de.flowtron.sokoban.game.LevelProgress
 import de.flowtron.sokoban.game.MovementHistory
 import de.flowtron.sokoban.game.SolutionLoader
+import de.flowtron.sokoban.room.RoomLevelDao
+import de.flowtron.sokoban.safeLaunch
 import de.flowtron.sokoban.state.GameDataInfo
 import de.flowtron.sokoban.state.StateFlowHolder
 import de.flowtron.sokoban.ui.ToastHandler
@@ -24,6 +27,7 @@ class GameViewModel @Inject constructor(
     private val stateFlowHolder: StateFlowHolder,
     private val toastHandler: ToastHandler,
     private val assetManager: AssetManager,
+    private val roomLevelDao: RoomLevelDao,
 ) : ViewModel() {
     fun loadLevel(gameDataInfo: GameDataInfo) {
         levelLoader.loadMap(gameDataInfo, assetManager)
@@ -31,8 +35,15 @@ class GameViewModel @Inject constructor(
     }
 
     fun loadSolution(gameDataInfo: GameDataInfo): MovementHistory? {
-        return solutionLoader.loadSolution(gameDataInfo, assetManager)
-        //stateFlowHolder.gotHelp(true)
+        val solution = solutionLoader.loadSolution(gameDataInfo, assetManager)
+
+        if(solution != null && solution.data.isNotEmpty()) {
+            viewModelScope.safeLaunch {
+                updateRoomLevel(help = true)
+            }
+        }
+
+        return solution
     }
 
     private fun currentMap(): LevelData =
@@ -76,12 +87,46 @@ class GameViewModel @Inject constructor(
         levelProgress.pushIntoHistory(stateFlowHolder.movementHistoryStateFlow, direction)
         stateFlowHolder.levelDataStateFlow.setLevelData(newMap)
         stateFlowHolder.coordinatesStateFlow.setCoordinates(newMap.findPlayer())
-        Log.i("GameViewModel", "perform move from $from in $direction leads to history: ${stateFlowHolder.movementHistoryStateFlow.showMovementHistory()}")
+        Log.i(
+            "GameViewModel",
+            "perform move from $from in $direction leads to history: ${stateFlowHolder.movementHistoryStateFlow.showMovementHistory()}"
+        )
 
         if (checkForWin()) {
             toastHandler.showToast("Success")
             stateFlowHolder.mapFinishedStateFlow.setMapFinished(true)
+
+            viewModelScope.safeLaunch {
+                updateRoomLevel(
+                    done = true,
+                    history = stateFlowHolder.movementHistoryStateFlow.movementHistory.value
+                )
+            }
+        } else {
+            viewModelScope.safeLaunch {
+                updateRoomLevel(history = stateFlowHolder.movementHistoryStateFlow.movementHistory.value)
+            }
         }
         //levelProgress.setCommentary(false)
+    }
+
+    suspend fun updateRoomLevel(
+        done: Boolean = false,
+        help: Boolean = false,
+        history: MovementHistory = MovementHistory(emptyList())
+    ) {
+        val gameDataInfo = stateFlowHolder.gameDataInfoStateFlow.gameDataInfo.value
+        if (gameDataInfo != null && gameDataInfo.id != null) {
+            val curLevel = roomLevelDao.getLevelById(gameDataInfo.id.toInt())
+            if (curLevel != null) {
+                var changed = curLevel
+
+                if(done) changed = changed.copy(done = true)
+                if(help) changed = changed.copy(help = true)
+                if(history.data.isNotEmpty()) changed = changed.copy(history = history.toString())
+
+                roomLevelDao.updateLevel(changed)
+            }
+        }
     }
 }

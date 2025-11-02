@@ -17,8 +17,8 @@ android {
         minSdk = 34
         targetSdk = 35
         // TODO: proper versioning .. for now we do it manually
-        versionCode = 5
-        versionName = "1.0.0-alpha-5"
+        versionCode = 6
+        versionName = "1.0.0-alpha-6"
 
         buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
         buildConfigField("int", "VERSION_CODE", versionCode.toString())

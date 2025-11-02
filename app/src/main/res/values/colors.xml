@@ -7,4 +7,8 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="comboProviderBG">#FF68A0C0</color>
+    <color name="levelFreshBG">#FF495D92</color>
+    <color name="levelFinishedBG">#FF293D52</color>
+    <color name="levelUsedSolution">#FFFF0000</color>
 </resources>
