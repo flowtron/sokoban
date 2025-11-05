@@ -112,11 +112,6 @@ fun ComboHeader(combo: String, providerBG: Color) {
 
 @Composable
 fun WorldHeader(combo: String, world: String, stateFlowHolder: StateFlowHolder, levels: List<RoomLevel>) {
-    /*Text(
-        text = world.format("%03d"),
-        textAlign = TextAlign.Center,
-        style = typography.labelSmall
-    )*/
     val currentHierarchyStateFlow = stateFlowHolder.levelHierarchyStateFlow.hierarchy.collectAsStateWithLifecycle()
     val currentHierarchy = currentHierarchyStateFlow.value
     val currentIsAlreadyActive = currentHierarchy.first == combo && currentHierarchy.second == world
@@ -246,44 +241,3 @@ fun levelButtonClick(level: RoomLevel, combo: String, world: String, levelsViewM
         levelsViewModel.loadLevel(requestedGameDataInfo)
     }
 }
-
-//@Composable
-//fun ForMapAssets_LevelInfoList(levelInfoLiveData: Map<String, Map<String, List<String>>>) {
-//    val buttonsPerRow = 4
-//    Column {
-//        levelInfoLiveData.forEach { (set, worlds) ->
-//            Text(text = "$set (${worlds.keys.size})", style = typography.headlineLarge)
-//            worlds.forEach { (world, levels) ->
-//                Text(text = world.format("%03d"), style = typography.headlineMedium)
-//                Column {
-//                    val rows = (levels.size + buttonsPerRow - 1) / buttonsPerRow
-//                    for (row in 0 until rows) {
-//                        Row(
-//                            modifier = Modifier.fillMaxWidth(),
-//                            horizontalArrangement = Arrangement.SpaceBetween
-//                        ) {
-//                            for (col in 0 until buttonsPerRow) {
-//                                val buttonIndex = row * buttonsPerRow + col
-//                                if (buttonIndex < levels.size) {
-//                                    val level = levels[buttonIndex]
-//                                    Button(onClick = {
-//                                        Log.i(
-//                                            "HomeFragment",
-//                                            "clicked on level [$set][$world][$level]"
-//                                        )
-////                                        lifecycleScope.safeLaunch {
-////                                            homeViewModel.loadLevel(requireContext(), set, world, level)
-////                                        }
-//                                    }) {
-//                                        Text(text = level)
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//                Spacer(modifier = Modifier.size(10.dp))
-//            }
-//        }
-//    }
-//}
