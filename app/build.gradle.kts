@@ -35,7 +35,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("int", "BUILD_TYPE", "RELEASE")
+            buildConfigField("String", "BUILD_TYPE", "\"RELEASE\"")
         }
     }
     compileOptions {
