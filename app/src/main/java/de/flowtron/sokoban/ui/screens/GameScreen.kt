@@ -63,10 +63,14 @@ fun GameScreen(
 private fun setSolutionDelta(
     stateFlowHolder: StateFlowHolder,
     levelProgress: LevelProgress,
+    gameViewModel: GameViewModel,
     di: Int
 ) {
     val current = stateFlowHolder.movementSolutionStateFlow.indexStateFlow.value
     stateFlowHolder.movementSolutionStateFlow.setIndex(current + di)
+    if(stateFlowHolder.movementSolutionStateFlow.indexStateFlow.value > 0){
+        gameViewModel.triggerUpdateRoomLevel(help = true)
+    }
     performPartialSolution(stateFlowHolder, levelProgress)
 }
 
@@ -394,8 +398,8 @@ fun RenderGameScreen(
             onDownClickOffset = { setOffsetBy(stateFlowHolder, 0, +1) },
 
             //                Log.d("SolutionControls STEP1_LEFT", "setDelta -1")
-            onLeftClickSolution = { setSolutionDelta(stateFlowHolder, levelProgress, -1) },
-            onRightClickSolution = { setSolutionDelta(stateFlowHolder, levelProgress, +1) },
+            onLeftClickSolution = { setSolutionDelta(stateFlowHolder, levelProgress, gameViewModel, -1) },
+            onRightClickSolution = { setSolutionDelta(stateFlowHolder, levelProgress, gameViewModel, +1) },
 
             //onSliderSolution = { data -> setSolutionIndex(stateFlowHolder, levelProgress, data) }, // FIXME never used!!!!
         )

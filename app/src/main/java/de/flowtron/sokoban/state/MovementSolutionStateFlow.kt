@@ -21,11 +21,7 @@ class MovementSolutionStateFlow {
     private val mutableIndexStateFlow: MutableStateFlow<Int> = MutableStateFlow(0)
     fun setIndex(index: Int) {
         val maxIndex = movementSolution.value.data.size
-        if (index >= 0 && index <= maxIndex) { // you can be on the initial pusher place, or at step #1 to #N inclusive
-            mutableIndexStateFlow.value = index
-        } else {
-            mutableIndexStateFlow.value = index.coerceIn(0, maxIndex)
-        }
+        mutableIndexStateFlow.value = index.coerceIn(0, maxIndex) // 0, (1, …, N)
     }
 
     val indexStateFlow = mutableIndexStateFlow.asStateFlow()

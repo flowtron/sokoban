@@ -37,11 +37,14 @@ class GameViewModel @Inject constructor(
     fun loadSolution(gameDataInfo: GameDataInfo): MovementHistory? {
         val solution = solutionLoader.loadSolution(gameDataInfo, assetManager)
 
-        if(solution != null && solution.data.isNotEmpty()) {
-            viewModelScope.safeLaunch {
-                updateRoomLevel(help = true)
-            }
-        }
+        // FIXME TODO - remove this line and possibly commented lines below once replacement is done TAG:helpingSteps
+        // this was the LOAD HELP gets you marked approach, which is not the proper way ..
+        // .. we can think about leaking the data into memory by loading it before needing it L8R.
+//        if(solution != null && solution.data.isNotEmpty()) {
+//            viewModelScope.safeLaunch {
+//                updateRoomLevel(help = true)
+//            }
+//        }
 
         return solution
     }
@@ -111,8 +114,8 @@ class GameViewModel @Inject constructor(
     }
 
     suspend fun updateRoomLevel(
-        done: Boolean = false,
-        help: Boolean = false,
+        done: Boolean? = null, //false,
+        help: Boolean? = null, //false,
         history: MovementHistory = MovementHistory(emptyList())
     ) {
         val gameDataInfo = stateFlowHolder.gameDataInfoStateFlow.gameDataInfo.value
@@ -121,12 +124,18 @@ class GameViewModel @Inject constructor(
             if (curLevel != null) {
                 var changed = curLevel
 
-                if(done) changed = changed.copy(done = true)
-                if(help) changed = changed.copy(help = true)
+                if(done !== null){ changed = changed.copy(done = done) }
+                if(help !== null){ changed = changed.copy(help = help) }
                 if(history.data.isNotEmpty()) changed = changed.copy(history = history.toString())
 
                 roomLevelDao.updateLevel(changed)
             }
+        }
+    }
+
+    fun triggerUpdateRoomLevel(done: Boolean? = null, help: Boolean? = null, history: MovementHistory = MovementHistory(emptyList()) ){
+        viewModelScope.safeLaunch {
+            updateRoomLevel(done, help, history)
         }
     }
 }

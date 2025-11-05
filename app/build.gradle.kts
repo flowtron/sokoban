@@ -16,9 +16,10 @@ android {
         applicationId = "de.flowtron.sokoban"
         minSdk = 34
         targetSdk = 35
+
         // TODO: proper versioning .. for now we do it manually
-        versionCode = 6
-        versionName = "1.0.0-alpha-6"
+        versionCode = 7
+        versionName = "1.0.0-alpha-7"
 
         buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
         buildConfigField("int", "VERSION_CODE", versionCode.toString())

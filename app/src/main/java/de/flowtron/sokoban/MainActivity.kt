@@ -102,6 +102,18 @@ class MainActivity : ComponentActivity() {
                                 Log.i("MainActivity", "App is now configured.")
                             }
                         }
+
+                        val thanksText = """
+        
+                            Enjoy the game!
+                                    
+                            You can only push, not pull boxes. The boxes and goals are all the same. Least pushes, then moves wins in comparison. 
+                                    
+                                    
+                            🫶 for BaZi, Fritz and all you others 😃 
+        
+                        """.trimIndent()
+
                         // on my screen the URL text was smushed on the right edge
                         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                             InfoScreenWithLogo(
@@ -111,7 +123,8 @@ class MainActivity : ComponentActivity() {
                                 logo = painterResource(id = R.drawable.splashscreen_logo),
                                 line1Text = "flowtron provides",
                                 line2Text = "S O K O B A N",
-                                multilineText = loadingScreenText,
+                                multilineText1 = thanksText,
+                                multilineText2 = loadingScreenText,
                                 copyrightText = "©2025 Florian 'flowtron' Schulte",
                                 urlText = "flowtron.de",
                                 onMultilineTextChange = { newText ->

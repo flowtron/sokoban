@@ -6,6 +6,9 @@ import javax.inject.Singleton
 @Singleton
 class StateFlowHolder @Inject constructor() {
     val configurationDoneStateFlow = ConfigurationDoneStateFlow()
+
+    val levelHierarchyStateFlow = LevelHierarchyStateFlow()
+
     val renderStateFlow = RenderStateFlow()
     val gameToolStateFlow = GameToolStateFlow()
     val gameDataInfoStateFlow = GameDataInfoStateFlow()
@@ -14,7 +17,9 @@ class StateFlowHolder @Inject constructor() {
 
     val levelOriginalStateFlow = LevelOriginalStateFlow() // map state once loaded
     val levelDataStateFlow = LevelDataStateFlow() // map state of game
+
     //val levelHistoryStateFlow = LevelHistoryStateFlow() // history of moves
+
     val movementHistoryStateFlow = MovementHistoryStateFlow() // history of moves
     //val historyData
 
@@ -24,5 +29,6 @@ class StateFlowHolder @Inject constructor() {
     val coordinatesStateFlow = CoordinatesStateFlow()
     val offsetStateFlow = OffsetStateFlow()
     val scaleStateFlow = ScaleStateFlow()
+
     val dragSensitivityStateFlow = DragSensitivityStateFlow()
 }

@@ -1,22 +1,52 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="72dp"
-    android:height="48dp"
-    android:viewportWidth="72.0"
-    android:viewportHeight="48.0">
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96.0"
+    android:viewportHeight="96.0"
+    ><!--
+        floor, floor, floor
+        pusher, box, goal
+        wall, solved, wall
+        wall, wall, wall
 
-    <!--
-    fillColor="#ffe83232"
-    -->
-    <!--
-    <path
-        android:fillColor="#ff282828"
-        android:pathData="M0,0 h300 v200 H0Z" />
+    ft rgb: #10a0c0
 -->
-    <!-- 1,1 : pusher -->
-    <!---->
+    <!-- background -->
+    <path
+        android:fillColor="#ff202836"
+        android:pathData="M0,0H964L96,96H-96,0z" />
+
+    <!-- ROW 1 : floor, floor, floor -->
+    <!-- floor -->
     <group
-        android:translateX="0"
+        android:translateX="12"
         android:translateY="0">
+        <path
+            android:fillColor="#ff803300"
+            android:pathData="M0,0H24L24,24H-24,0z" />
+    </group>
+    <!-- floor -->
+    <group
+        android:translateX="36"
+        android:translateY="0">
+        <path
+            android:fillColor="#ff803300"
+            android:pathData="M0,0H24L24,24H-24,0z" />
+    </group>
+    <!-- floor -->
+    <group
+        android:translateX="60"
+        android:translateY="0">
+        <path
+            android:fillColor="#ff803300"
+            android:pathData="M0,0H24L24,24H-24,0z" />
+    </group>
+
+    <!-- ROW 2 : pusher, box, goal -->
+    <!-- pusher -->
+    <group
+        android:translateX="12"
+        android:translateY="24">
         <path
             android:fillColor="#ffdb7100"
             android:pathData="M0,0H24L24,24H-24,0z" />
@@ -36,15 +66,10 @@
             android:fillColor="#ff800000"
             android:pathData="M9,18h10l-2,2h-10l-2,-2z" />
     </group>
-    <!---->
-    <!-- 2,1 : box -->
-    <!--
-    fillColor="#ff227682"
-    -->
-    <!---->
+    <!-- box -->
     <group
-        android:translateX="24"
-        android:translateY="0">
+        android:translateX="36"
+        android:translateY="24">
         <path
             android:fillColor="#ff9b6303"
             android:pathData="M0,0H24L24,24H-24,0z" />
@@ -75,12 +100,10 @@
                 android:pathData="M20,4l-0.1,0.1l0.2,-0.2l-16,16l-0.2,0.2Z" />
         </group>
     </group>
-    <!---->
-
-    <!-- 3,1 : goal -->
+    <!-- goal -->
     <group
-        android:translateX="48"
-        android:translateY="0">
+        android:translateX="60"
+        android:translateY="24">
         <path
             android:fillColor="#ff803300"
             android:pathData="M0,0H24L24,24H-24,0z" />
@@ -98,17 +121,19 @@
         </group>
     </group>
 
-<!-- 1,2 : box -->
-    <!--<group
-        android:translateX="0"
-        android:translateY="24">
-
-    </group>-->
-
-<!-- 2,2 : box -->
+    <!-- ROW 3 : wall, solved, wall -->
+    <!-- wall -->
     <group
-        android:translateX="24"
-        android:translateY="24">
+        android:translateX="12"
+        android:translateY="48">
+        <path
+            android:fillColor="#FF6f5044"
+            android:pathData="M0,0H24L24,24H-24,0z" />
+    </group>
+    <!-- box on goal : solved -->
+    <group
+        android:translateX="36"
+        android:translateY="48">
         <path
             android:fillColor="#ff9b6303"
             android:pathData="M0,0H24L24,24H-24,0z" />
@@ -139,12 +164,39 @@
                 android:pathData="M20,4l-0.1,0.1l0.2,-0.2l-16,16l-0.2,0.2z" />
         </group>
     </group>
+    <!-- wall -->
+    <group
+        android:translateX="60"
+        android:translateY="48">
+        <path
+            android:fillColor="#FF6f5044"
+            android:pathData="M0,0H24L24,24H-24,0z" />
+    </group>
 
-<!-- 3,2 : box -->
-    <!--<group
-        android:translateX="48"
-        android:translateY="24">
+    <!-- ROW 4 : wall, wall, wall -->
+    <!-- wall -->
+    <group
+        android:translateX="12"
+        android:translateY="72">
+        <path
+            android:fillColor="#FF6f5044"
+            android:pathData="M0,0H24L24,24H-24,0z" />
+    </group>
+    <!-- wall -->
+    <group
+        android:translateX="36"
+        android:translateY="72">
+        <path
+            android:fillColor="#FF6f5044"
+            android:pathData="M0,0H24L24,24H-24,0z" />
+    </group>
+    <!-- wall -->
+    <group
+        android:translateX="60"
+        android:translateY="72">
+        <path
+            android:fillColor="#FF6f5044"
+            android:pathData="M0,0H24L24,24H-24,0z" />
+    </group>
 
-    </group>-->
-
-    </vector>
+</vector>
