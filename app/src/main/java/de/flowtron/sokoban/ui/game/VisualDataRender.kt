@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -58,70 +59,76 @@ fun VisualDataRender(stateFlowHolder: StateFlowHolder, gameViewModel: GameViewMo
         // seems required workaround for something that works but is marked as broken :-(
         @SuppressLint("UnusedBoxWithConstraintsScope")
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val density = LocalDensity.current
-            val viewWidthDp = with(density) { constraints.maxWidth.toDp() }
-            val viewHeightDp = with(density) { constraints.maxHeight.toDp() }
-            val viewSizeDp = minOf(viewWidthDp, viewHeightDp)
-            val sizeFloatDp = viewSizeDp / currentScale.toFloat()
-            val sizeModifier = Modifier.size(sizeFloatDp)
-            val tileSize = sizeModifier
+            val solutionMovementState =
+                stateFlowHolder.movementSolutionStateFlow.movementSolution.collectAsStateWithLifecycle()
+            val showingSolutionTool = (currentGameTool == InteractionMode.SOLUTION_CONTROLS)
+            val showingSolutionWithMoves = showingSolutionTool && solutionMovementState.value.data.isNotEmpty()
+            if(showingSolutionTool && !showingSolutionWithMoves) {
+                Text("Map Will Be MARKED\nOnce You Step Into The Solution\nMovement History")
+            }else{
+                val density = LocalDensity.current
+                val viewWidthDp = with(density) { constraints.maxWidth.toDp() }
+                val viewHeightDp = with(density) { constraints.maxHeight.toDp() }
+                val viewSizeDp = minOf(viewWidthDp, viewHeightDp)
+                val sizeFloatDp = viewSizeDp / currentScale.toFloat()
+                val sizeModifier = Modifier.size(sizeFloatDp)
+                val tileSize = sizeModifier
 
+                val mapDisplayGridModifier = Modifier
+                    .background(color = Color.LightGray)
+                    .fillMaxSize()
+                    .run {
 
-            val mapDisplayGridModifier = Modifier
-                .background(color = Color.LightGray)
-                .fillMaxSize()
-                .run {
-                    val solutionMovementState =
-                        stateFlowHolder.movementSolutionStateFlow.movementSolution.collectAsStateWithLifecycle()
-                    if (currentGameTool == InteractionMode.SOLUTION_CONTROLS) {
-                        if (solutionMovementState.value.data.isNotEmpty()) {
-                            this.proColorFilter(ColorFilter.colorMatrix(flowMatrix()))
+                        if (currentGameTool == InteractionMode.SOLUTION_CONTROLS) {
+                            if (solutionMovementState.value.data.isNotEmpty()) {
+                                this.proColorFilter(ColorFilter.colorMatrix(flowMatrix()))
+                            } else {
+                                this
+                            }
                         } else {
-                            this
-                        }
-                    } else {
-                        val isMapFinished = stateFlowHolder.mapFinishedStateFlow.finished.value
-                        if (isMapFinished) {
-                            //this.proColorFilter(ColorFilter.colorMatrix(greyscaleMatrix()))
-                            this.proColorFilter(ColorFilter.colorMatrix(greenTintMatrix()))
-                        } else {
-                            this
+                            val isMapFinished = stateFlowHolder.mapFinishedStateFlow.finished.value
+                            if (isMapFinished) {
+                                //this.proColorFilter(ColorFilter.colorMatrix(greyscaleMatrix()))
+                                this.proColorFilter(ColorFilter.colorMatrix(greenTintMatrix()))
+                            } else {
+                                this
+                            }
                         }
                     }
-                }
 
-            // MAP DISPLAY GRID
-            Column(modifier = mapDisplayGridModifier) {
-                innerLevelData.data.forEachIndexed { rowIndex, row ->
-                    if (rowIndex in yRange) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                        ) {
-                            row.forEachIndexed { cellIndex, cell ->
-                                if (cellIndex in xRange) {
-                                    val cellCell = requireNotNull(Cell.fromId(cell.toInt()))
-                                    when (currentRenderer) {
-                                        DRAW -> DrawMapTileFromId(cellCell.id, tileSize)
-                                        TEXT -> CellAsText(
-                                            cellCell,
-                                            tileSize,
-                                            innerCoordinates,
-                                            rowIndex,
-                                            cellIndex
-                                        )
+                // MAP DISPLAY GRID
+                Column(modifier = mapDisplayGridModifier) {
+                    innerLevelData.data.forEachIndexed { rowIndex, row ->
+                        if (rowIndex in yRange) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                            ) {
+                                row.forEachIndexed { cellIndex, cell ->
+                                    if (cellIndex in xRange) {
+                                        val cellCell = requireNotNull(Cell.fromId(cell.toInt()))
+                                        when (currentRenderer) {
+                                            DRAW -> DrawMapTileFromId(cellCell.id, tileSize)
+                                            TEXT -> CellAsText(
+                                                cellCell,
+                                                tileSize,
+                                                innerCoordinates,
+                                                rowIndex,
+                                                cellIndex
+                                            )
 
-                                        BOTH -> {
-                                            if (cellCell.isPlayer()) {
-                                                DrawMapTileFromId(cellCell.id, tileSize)
-                                            } else {
-                                                CellAsText(
-                                                    cellCell,
-                                                    tileSize,
-                                                    innerCoordinates,
-                                                    rowIndex,
-                                                    cellIndex
-                                                )
+                                            BOTH -> {
+                                                if (cellCell.isPlayer()) {
+                                                    DrawMapTileFromId(cellCell.id, tileSize)
+                                                } else {
+                                                    CellAsText(
+                                                        cellCell,
+                                                        tileSize,
+                                                        innerCoordinates,
+                                                        rowIndex,
+                                                        cellIndex
+                                                    )
+                                                }
                                             }
                                         }
                                     }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +34,7 @@ import de.flowtron.sokoban.next
 import de.flowtron.sokoban.safeLaunch
 import de.flowtron.sokoban.state.StateFlowHolder
 import de.flowtron.sokoban.ui.game.InteractionControlWidget
+import de.flowtron.sokoban.ui.game.InteractionMode
 import de.flowtron.sokoban.ui.game.VisualDataRender
 import de.flowtron.sokoban.ui.models.GameViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -261,6 +263,8 @@ fun RenderGameScreen(
 
     val dragThreshold = 100f
 
+    val currentInteractionMode by stateFlowHolder.gameToolStateFlow.interactionMode.collectAsStateWithLifecycle()
+
     /*
     fun handleSwipe(deltaX: Float, deltaY: Float) {
         Log.v("GameScreen", "handleSwipe: deltaX=$deltaX, deltaY=$deltaY")
@@ -337,21 +341,26 @@ fun RenderGameScreen(
                     },
                     onDrag = { change, dragAmount ->
                         change.consume()
-                        dragPusherX.floatValue += dragAmount.x
-                        dragPusherY.floatValue += dragAmount.y
-                        if (abs(dragPusherX.value) > dragThreshold || abs(dragPusherY.value) > dragThreshold) {
-                            if (swipeJob.value?.isActive != true) {
-                                swipeJob.value = coroutineScope.safeLaunch {
-                                    performRepeatedSwipeAction(
-                                        dragPusherX.value,
-                                        dragPusherY.value,
-                                        dragSensitivityState.value,
-                                        stateFlowHolder,
-                                        gameViewModel,
-                                    )
+
+                        val currentToolCanDrag = currentInteractionMode == InteractionMode.MAIN_CONTROLS
+                        if(currentToolCanDrag){
+                            dragPusherX.floatValue += dragAmount.x
+                            dragPusherY.floatValue += dragAmount.y
+                            if (abs(dragPusherX.floatValue) > dragThreshold || abs(dragPusherY.floatValue) > dragThreshold) {
+                                if (swipeJob.value?.isActive != true) {
+                                    swipeJob.value = coroutineScope.safeLaunch {
+                                        performRepeatedSwipeAction(
+                                            dragPusherX.floatValue,
+                                            dragPusherY.floatValue,
+                                            dragSensitivityState.value,
+                                            stateFlowHolder,
+                                            gameViewModel,
+                                        )
+                                    }
                                 }
-                            }
-                        }// else { swipeJob?.cancel() } // GEMINI says this could make it stuttery if user hovers around threshold
+                            }// else { swipeJob?.cancel() } // GEMINI says this could make it stuttery if user hovers around threshold
+                        }
+
                     }
                 )
             }

@@ -23,7 +23,7 @@ android {
 
         buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
         buildConfigField("int", "VERSION_CODE", versionCode.toString())
-        buildConfigField("String", "BUILD_DATE", "\"${System.currentTimeMillis().toString()}\"") // too large for int
+        buildConfigField("String", "BUILD_DATE", "\"${System.currentTimeMillis()}\"")
         buildConfigField("String", "BUILD_TYPE", "\"DEVELOPMENT\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -66,7 +66,7 @@ dependencies {
 
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt)
-    //implementation(libs.hilt.navigation.compose)
+    implementation(libs.androidx.compose.ui.unit)
     ksp(libs.hilt.compiler)
 
     implementation(libs.androidx.room.runtime)
@@ -75,7 +75,7 @@ dependencies {
 
     implementation(libs.navigation.compose)
     implementation(libs.material.compose)
-    implementation(libs.androidx.runtime.livedata) // 20250801: only for LiveData<List<RoomLevel>>
+    implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.lifecycle.livedata.ktx)
 
     testImplementation(libs.junit)

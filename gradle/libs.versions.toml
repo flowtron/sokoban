@@ -15,7 +15,8 @@ lifecycleRuntimeKtx = "2.9.2"
 navigationCompose = "2.9.2"
 espressoCore = "3.6.1"
 junit = "4.13.2"
-agp = "8.13.0"
+agp = "8.13.1"
+uiUnit = "1.9.5"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -45,6 +46,7 @@ navigation-compose = { group = "androidx.navigation", name = "navigation-compose
 material-compose = { group ="androidx.compose.material", name = "material-icons-extended-android", version.ref = "materialCompose" }
 androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
 androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
+androidx-compose-ui-unit = { group = "androidx.compose.ui", name = "ui-unit", version.ref = "uiUnit" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
