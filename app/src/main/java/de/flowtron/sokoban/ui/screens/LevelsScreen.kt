@@ -203,9 +203,14 @@ fun WorldHeader(combo: String, world: String, stateFlowHolder: StateFlowHolder, 
             Column(
                 Modifier.weight(.5f)
             ) {
+                val countTimes = if(headerHelped==1){
+                    "time"
+                }else{
+                    "times"
+                }
                 if(headerHelped>0){
                     Text(
-                        text = "had help $headerHelped times",
+                        text = "had help $headerHelped $countTimes",
                         textAlign = TextAlign.Center,
                         style = typography.labelSmall,
                         modifier = Modifier.scale(0.90f)

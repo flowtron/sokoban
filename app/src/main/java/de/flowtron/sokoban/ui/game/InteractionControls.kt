@@ -12,15 +12,22 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.BlurCircular
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Draw
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.ZoomIn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -28,6 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.flowtron.sokoban.game.LevelProgress
+import de.flowtron.sokoban.game.MovementHistory
 import de.flowtron.sokoban.state.StateFlowHolder
 import kotlin.math.max
 
@@ -68,10 +76,10 @@ fun ActionSwitcher(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton( onSolutionClick, modifier, Icons.Filled.Lightbulb, "Solution")
-        IconButton( onHistoryClick, modifier, Icons.Filled.History, "History")
-        IconButton( onRenderClick, modifier, Icons.Filled.Draw, "Renderer")
-        IconButton( onZoomClick, modifier, Icons.Filled.ZoomIn,  "Zoom")
+        IconButton(onSolutionClick, modifier, Icons.Filled.Lightbulb, "Solution")
+        IconButton(onHistoryClick, modifier, Icons.Filled.History, "History")
+        IconButton(onRenderClick, modifier, Icons.Filled.Draw, "Renderer")
+        IconButton(onZoomClick, modifier, Icons.Filled.ZoomIn, "Zoom")
     }
 }
 
@@ -90,16 +98,26 @@ fun CoordinateSteppers(
     ) {
         val btnModifier = Modifier.weight(1f) // USELESS .. if all are the same
         // ArrowBack/ArrowForward could be NavigateBack/NavigateNext .. but that name is "wrong"
-        IconButton( onLeftClick, btnModifier, Icons.Filled.ArrowBack, "Left")
-        IconButton( onUpClick, btnModifier, Icons.Filled.ArrowUpward, "Up")
-        IconButton(onClick = onCenterClick, btnModifier, imageVector = Icons.Filled.BlurCircular, "Center")
-        IconButton( onDownClick, btnModifier, Icons.Filled.ArrowDownward, "Down")
-        IconButton( onRightClick, btnModifier, Icons.Filled.ArrowForward, "Right")
+        IconButton(onLeftClick, btnModifier, Icons.Filled.ArrowBack, "Left")
+        IconButton(onUpClick, btnModifier, Icons.Filled.ArrowUpward, "Up")
+        IconButton(
+            onClick = onCenterClick,
+            btnModifier,
+            imageVector = Icons.Filled.BlurCircular,
+            "Center"
+        )
+        IconButton(onDownClick, btnModifier, Icons.Filled.ArrowDownward, "Down")
+        IconButton(onRightClick, btnModifier, Icons.Filled.ArrowForward, "Right")
     }
 }
 
 @Composable
-private fun IconButton(onClick: () -> Unit, modifier: Modifier, imageVector: ImageVector, contentDescription: String) {
+private fun IconButton(
+    onClick: () -> Unit,
+    modifier: Modifier,
+    imageVector: ImageVector,
+    contentDescription: String
+) {
     Button(onClick = onClick, modifier = modifier) {
         Icon(imageVector = imageVector, contentDescription = contentDescription)
     }
@@ -139,13 +157,19 @@ fun ZoomControls(
 }
 
 @Composable
-fun HistoryControls(stateFlowHolder: StateFlowHolder, levelProgress: LevelProgress?) {
+fun HistoryControls(
+    stateFlowHolder: StateFlowHolder,
+    levelProgress: LevelProgress?,
+    onDeleteHistory: () -> Unit
+) {
     val historyMovements =
         stateFlowHolder.movementHistoryStateFlow.movementHistory.collectAsStateWithLifecycle()
     val maxIndex = historyMovements.value.data.size
     val maxRange = maxIndex.toFloat()
     val historyPosition =
         stateFlowHolder.movementHistoryStateFlow.indexStateFlow.collectAsStateWithLifecycle()
+    var showDialog by remember { mutableStateOf(false) }
+
     Column {
         // SINGLE STEPS
         Row(
@@ -156,16 +180,11 @@ fun HistoryControls(stateFlowHolder: StateFlowHolder, levelProgress: LevelProgre
 
             Button(
                 onClick = {
-                    if(levelProgress != null) {
-                        stateFlowHolder.movementHistoryStateFlow.stepIndex(-1)
-                        val partialHistory = stateFlowHolder.movementHistoryStateFlow.partialHistory()
-                        Log.d("HistoryControls", "partial history: ${partialHistory.toDirections()}")
-                        val origMap = requireNotNull(stateFlowHolder.levelOriginalStateFlow.levelOriginal.value)
-                        val changedMap = levelProgress.performHistory(origMap, partialHistory)
-                        stateFlowHolder.levelDataStateFlow.setLevelData(changedMap)
-                    }else{
-                        Log.d("HistoryControls", "without LEVEL_PROGRESS we can't rewrite HISTORY")
-                    }
+                    stepThroughHistory(
+                        stateFlowHolder,
+                        levelProgress,
+                        -1
+                    )
                 },
                 modifier = Modifier.weight(1f)
             ) {
@@ -173,17 +192,20 @@ fun HistoryControls(stateFlowHolder: StateFlowHolder, levelProgress: LevelProgre
             }
             Button(
                 onClick = {
-                    if(levelProgress != null) {
-                        stateFlowHolder.movementHistoryStateFlow.stepIndex(+1)
-                        val partialHistory = stateFlowHolder.movementHistoryStateFlow.partialHistory()
-                        Log.d("HistoryControls", "partial history: ${partialHistory.toDirections()}")
-                        val origMap = requireNotNull(stateFlowHolder.levelOriginalStateFlow.levelOriginal.value)
-                        val changedMap = levelProgress.performHistory(origMap, partialHistory)
-                        stateFlowHolder.levelDataStateFlow.setLevelData(changedMap)
-                    }else{
-                        Log.d("HistoryControls", "without LEVEL_PROGRESS we can't rewrite HISTORY")
-                    }
-                          },
+                    showDialog = true
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(Icons.Filled.Delete, contentDescription = "Delete")
+            }
+            Button(
+                onClick = {
+                    stepThroughHistory(
+                        stateFlowHolder,
+                        levelProgress,
+                        +1
+                    )
+                },
                 modifier = Modifier.weight(1f)
             ) {
                 Icon(Icons.Filled.ArrowForward, contentDescription = "Right")
@@ -214,6 +236,94 @@ fun HistoryControls(stateFlowHolder: StateFlowHolder, levelProgress: LevelProgre
 
         }
     }
+
+    if (showDialog) {
+        AreYouSureDialog(
+            onDismissRequest = { showDialog = false },
+            onConfirmation = {
+
+                showDialog = false
+                // TODO: (compare below) we should have a spinner shown until we get confirmation that the history was deleted
+
+                Log.d("HistoryControls", "History delete confirmed!")
+
+                stateFlowHolder.movementHistoryStateFlow.setMovementHistory(
+                    MovementHistory(
+                        emptyList()
+                    )
+                )
+                stateFlowHolder.levelDataStateFlow.setLevelData(stateFlowHolder.levelOriginalStateFlow.levelOriginal.value)
+                val cleanLevelData =
+                    requireNotNull(stateFlowHolder.levelDataStateFlow.levelData.value)
+                stateFlowHolder.coordinatesStateFlow.setCoordinates(cleanLevelData.findPlayer())
+
+                onDeleteHistory()
+                // TODO: (compare above) wait for confirmation, then hide the spinner
+            },
+            dialogTitle = "Delete History",
+            dialogText = "Are you sure you want to delete the history?"
+        )
+    }
+}
+
+fun stepThroughHistory(
+    stateFlowHolder: StateFlowHolder,
+    levelProgress: LevelProgress?,
+    delta: Int
+) {
+    /* FIXME:
+     * the state changes fine already, but the roomLevel value for history is not changed ..
+     * .. which is fine for going forward again.
+     * But we need to fix the history to whatever step we may start walking about again!
+     */
+    if (levelProgress != null) {
+        stateFlowHolder.movementHistoryStateFlow.stepIndex(delta)
+        val partialHistory = stateFlowHolder.movementHistoryStateFlow.partialHistory()
+
+        val origMap = requireNotNull(stateFlowHolder.levelOriginalStateFlow.levelOriginal.value)
+        val changedMap = levelProgress.performHistory(origMap, partialHistory)
+        stateFlowHolder.levelDataStateFlow.setLevelData(changedMap)
+        stateFlowHolder.coordinatesStateFlow.setCoordinates(changedMap.findPlayer())
+
+        Log.d(
+            "HistoryControls",
+            "partial history: ${partialHistory.toDirections()} with player at ${stateFlowHolder.coordinatesStateFlow.coordinates.value} and level data $changedMap"
+        )
+    } else {
+        Log.d("HistoryControls", "without LEVEL_PROGRESS we can't rewrite HISTORY")
+    }
+}
+
+@Composable
+fun AreYouSureDialog(
+    onDismissRequest: () -> Unit,
+    onConfirmation: () -> Unit,
+    dialogTitle: String,
+    dialogText: String,
+) {
+    AlertDialog(
+        title = { Text(text = dialogTitle) },
+        text = { Text(text = dialogText) },
+        onDismissRequest = { onDismissRequest() },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onConfirmation()
+                }
+            ) {
+                Text("Confirm")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    onDismissRequest()
+                }
+            ) {
+                Text("Dismiss")
+            }
+        }
+    )
 }
 
 @Composable
@@ -231,7 +341,7 @@ fun SolutionControls(
         stateFlowHolder.movementSolutionStateFlow.indexStateFlow.collectAsStateWithLifecycle()
 
     Column {
-        if(maxIndex == 0){
+        if (maxIndex == 0) {
             // ACTION BUTTON
             Row(
                 modifier = Modifier.interactionModifier(),
@@ -243,7 +353,7 @@ fun SolutionControls(
                 }
             }
         }
-        if(maxIndex > 0){
+        if (maxIndex > 0) {
             // SINGLE STEPS
             Row(
                 modifier = Modifier.interactionModifier(),

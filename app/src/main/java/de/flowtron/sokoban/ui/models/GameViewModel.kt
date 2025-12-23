@@ -29,8 +29,8 @@ class GameViewModel @Inject constructor(
     private val assetManager: AssetManager,
     private val roomLevelDao: RoomLevelDao,
 ) : ViewModel() {
-    fun loadLevel(gameDataInfo: GameDataInfo) {
-        levelLoader.loadMap(gameDataInfo, assetManager)
+    suspend fun loadLevel(gameDataInfo: GameDataInfo) {
+        levelLoader.loadMap(gameDataInfo, assetManager, roomLevelDao)
         stateFlowHolder.mapFinishedStateFlow.setMapFinished(false)
     }
 
@@ -102,12 +102,17 @@ class GameViewModel @Inject constructor(
             viewModelScope.safeLaunch {
                 updateRoomLevel(
                     done = true,
+                    //help = ?,
                     history = stateFlowHolder.movementHistoryStateFlow.movementHistory.value
                 )
             }
         } else {
             viewModelScope.safeLaunch {
-                updateRoomLevel(history = stateFlowHolder.movementHistoryStateFlow.movementHistory.value)
+                updateRoomLevel(
+                    //done = ?,
+                    //help = ?,
+                    history = stateFlowHolder.movementHistoryStateFlow.movementHistory.value
+                )
             }
         }
         //levelProgress.setCommentary(false)
@@ -116,7 +121,8 @@ class GameViewModel @Inject constructor(
     suspend fun updateRoomLevel(
         done: Boolean? = null, //false,
         help: Boolean? = null, //false,
-        history: MovementHistory = MovementHistory(emptyList())
+        history: MovementHistory = MovementHistory(emptyList()),
+        deleteHistory: Boolean = false,
     ) {
         val gameDataInfo = stateFlowHolder.gameDataInfoStateFlow.gameDataInfo.value
         if (gameDataInfo != null && gameDataInfo.id != null) {
@@ -126,7 +132,11 @@ class GameViewModel @Inject constructor(
 
                 if(done !== null){ changed = changed.copy(done = done) }
                 if(help !== null){ changed = changed.copy(help = help) }
-                if(history.data.isNotEmpty()) changed = changed.copy(history = history.toString())
+                if(history.data.isNotEmpty()) {
+                    changed = changed.copy(history = history.toString())
+                }else{
+                    if(deleteHistory) changed = changed.copy(history = null)
+                }
 
                 roomLevelDao.updateLevel(changed)
             }

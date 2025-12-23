@@ -27,9 +27,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import de.flowtron.sokoban.game.Coordinates
 import de.flowtron.sokoban.game.LevelData
 import de.flowtron.sokoban.game.LevelProgress
+import de.flowtron.sokoban.game.MovementHistory
 import de.flowtron.sokoban.next
 import de.flowtron.sokoban.safeLaunch
 import de.flowtron.sokoban.state.StateFlowHolder
@@ -70,7 +72,7 @@ private fun setSolutionDelta(
 ) {
     val current = stateFlowHolder.movementSolutionStateFlow.indexStateFlow.value
     stateFlowHolder.movementSolutionStateFlow.setIndex(current + di)
-    if(stateFlowHolder.movementSolutionStateFlow.indexStateFlow.value > 0){
+    if (stateFlowHolder.movementSolutionStateFlow.indexStateFlow.value > 0) {
         gameViewModel.triggerUpdateRoomLevel(help = true)
     }
     performPartialSolution(stateFlowHolder, levelProgress)
@@ -342,8 +344,9 @@ fun RenderGameScreen(
                     onDrag = { change, dragAmount ->
                         change.consume()
 
-                        val currentToolCanDrag = currentInteractionMode == InteractionMode.MAIN_CONTROLS
-                        if(currentToolCanDrag){
+                        val currentToolCanDrag =
+                            currentInteractionMode == InteractionMode.MAIN_CONTROLS
+                        if (currentToolCanDrag) {
                             dragPusherX.floatValue += dragAmount.x
                             dragPusherY.floatValue += dragAmount.y
                             if (abs(dragPusherX.floatValue) > dragThreshold || abs(dragPusherY.floatValue) > dragThreshold) {
@@ -407,10 +410,29 @@ fun RenderGameScreen(
             onDownClickOffset = { setOffsetBy(stateFlowHolder, 0, +1) },
 
             //                Log.d("SolutionControls STEP1_LEFT", "setDelta -1")
-            onLeftClickSolution = { setSolutionDelta(stateFlowHolder, levelProgress, gameViewModel, -1) },
-            onRightClickSolution = { setSolutionDelta(stateFlowHolder, levelProgress, gameViewModel, +1) },
-
+            onLeftClickSolution = {
+                setSolutionDelta(
+                    stateFlowHolder,
+                    levelProgress,
+                    gameViewModel,
+                    -1
+                )
+            },
+            onRightClickSolution = {
+                setSolutionDelta(
+                    stateFlowHolder,
+                    levelProgress,
+                    gameViewModel,
+                    +1
+                )
+            },
             //onSliderSolution = { data -> setSolutionIndex(stateFlowHolder, levelProgress, data) }, // FIXME never used!!!!
+            onDeleteHistory = {
+                gameViewModel.viewModelScope.safeLaunch {
+                    gameViewModel.updateRoomLevel(done = false, help = false, history = MovementHistory(emptyList()), deleteHistory = true)
+                    Log.i("GameScreen", "History deleted")
+                }
+            },
         )
 
     }

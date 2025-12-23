@@ -40,7 +40,7 @@ class MutableLevelData(
     }
 
     fun expand(edge: Int) {
-        Log.i("LevelData", "Expanding level data by $edge. Currently have ${_data.size} x ${_data[0].size}.")
+        Log.i("LevelData", "Expanding level by $edge on the edges. Currently have ${_data.size} x ${_data[0].size}.")
         val filler = Cell.SPACE.id.toByte()
         // add edge rows above and below (of original size)
         for(y in 1..edge) {

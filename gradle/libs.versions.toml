@@ -15,7 +15,7 @@ lifecycleRuntimeKtx = "2.9.2"
 navigationCompose = "2.9.2"
 espressoCore = "3.6.1"
 junit = "4.13.2"
-agp = "8.13.1"
+agp = "8.13.2"
 uiUnit = "1.9.5"
 
 [libraries]

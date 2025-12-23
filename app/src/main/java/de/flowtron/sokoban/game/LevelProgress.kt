@@ -72,11 +72,6 @@ class LevelProgress @Inject constructor(
 
     // , historyStateFlow: MovementHistoryStateFlow, coordinatesStateFlow: CoordinatesStateFlow
     fun performMove(map: LevelData, from: Coordinates, direction: Coordinates): LevelData {
-        //val oldMap = stateFlowHolder.levelDataStateFlow.levelData.value
-
-        // TODO: has to be done only when appropriate
-        //pushIntoHistory(direction)
-
         val to = from.add(direction)
         val cellTo = map.get(to)
         val cellFrom = map.get(from)
@@ -199,7 +194,8 @@ class LevelProgress @Inject constructor(
             mutableMap.set(from, cellBehind)
             mutableMap.set(to, cellForward)
 
-            Log.i("LevelProgress", "$mutableMap")
+            if(withCommentary)
+                Log.i("LevelProgress", "$mutableMap")
 
             from = to
         }
@@ -222,10 +218,10 @@ class LevelProgress @Inject constructor(
         val makeHistory = MovementHistory(newHistory)
         historyStateFlow.setMovementHistory(makeHistory)
         historyStateFlow.setIndex(makeHistory.data.size)
-// think of it like this:
-// 0 means "before 1st step"
-// 1 means "after 1st step"
-// N means "after Nth step"
+        // think of it like this:
+        // 0 means "before 1st step"
+        // 1 means "after 1st step"
+        // N means "after Nth step"
 
         //if(withCommentary)
         //Log.d("GameViewModel", "HISTORY: ${makeHistory.toDirections()}")

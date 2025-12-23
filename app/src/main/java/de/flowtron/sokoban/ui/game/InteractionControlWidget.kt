@@ -33,11 +33,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.flowtron.sokoban.game.LevelProgress
 import de.flowtron.sokoban.state.StateFlowHolder
 
-/*
-    onToolAClick: () -> Unit,
-    onToolBClick: () -> Unit,
-
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InteractionControlWidget(
@@ -56,6 +51,7 @@ fun InteractionControlWidget(
     onRightClickOffset: () -> Unit,
     onLeftClickSolution: () -> Unit,
     onRightClickSolution: () -> Unit,
+    onDeleteHistory: () -> Unit,
 ) {
     val basicCurrentMode by stateFlowHolder.gameToolStateFlow.interactionMode.collectAsStateWithLifecycle()
 
@@ -78,8 +74,12 @@ fun InteractionControlWidget(
                     onRightClickOffset,
                     levelProgress,
                     onSolutionClick,
+                    onHistoryClick,
+                    onRenderClick,
+                    onZoomClick,
                     onLeftClickSolution,
-                    onRightClickSolution
+                    onRightClickSolution,
+                    onDeleteHistory,
                 )
             }
             UiControlsForModeChange(stateFlowHolder, basicCurrentMode)
@@ -91,7 +91,7 @@ private fun cycleMode(stateFlowHolder: StateFlowHolder, currentMode: Interaction
     val cycledMode = (currentMode.ordinal + cycleStep + InteractionMode.entries.size) % InteractionMode.entries.size
     val nextInteractionMode = InteractionMode.entries[cycledMode]
     stateFlowHolder.gameToolStateFlow.setGameTool(nextInteractionMode)
-    Log.d("InteractionControlWidget", "Mode changed by $cycleStep to ${stateFlowHolder.gameToolStateFlow.interactionMode}")
+    Log.d("InteractionControlWidget", "Mode changed by $cycleStep to ${stateFlowHolder.gameToolStateFlow.interactionMode.value}")
 }
 
 @Composable
@@ -102,10 +102,6 @@ private fun UiControlsForModeChange(stateFlowHolder: StateFlowHolder, currentMod
         .height(40.dp)
         .scale(0.8f)
         .defaultMinSize(rowMinSize)
-
-    //.border(width = BorderStroke(2.dp, Color.TRANSPARENT), color = Color.TRANSPARENT, shape = RectangleShape)
-    // Icons
-    // Icons.Filled.Refresh
     Row {
         OutlinedButton(
             onClick = { cycleMode(stateFlowHolder, currentMode, -1) },
@@ -146,8 +142,12 @@ private fun UiControlsForMode(
     onRightClickOffset: () -> Unit,
     levelProgress: LevelProgress?,
     onSolutionClick: () -> Unit,
+    onHistoryClick: () -> Unit,
+    onRenderClick: () -> Unit,
+    onZoomClick: () -> Unit,
     onLeftClickSolution: () -> Unit,
-    onRightClickSolution: () -> Unit
+    onRightClickSolution: () -> Unit,
+    onDeleteHistory: () -> Unit,
 ) {
     when (currentMode) {
         InteractionMode.MAIN_CONTROLS -> MainInteractionControls(
@@ -160,16 +160,19 @@ private fun UiControlsForMode(
                 stateFlowHolder.gameToolStateFlow.setGameTool(
                     InteractionMode.HISTORY_CONTROLS
                 )
+                onHistoryClick()
             },
             onRenderClick = {
                 stateFlowHolder.gameToolStateFlow.setGameTool(
                     InteractionMode.MAIN_CONTROLS
                 )
+                onRenderClick()
             },
             onZoomClick = {
                 stateFlowHolder.gameToolStateFlow.setGameTool(
                     InteractionMode.ZOOM_CONTROLS
                 )
+                onZoomClick()
             },
             onLeftClick = onLeftClickOffset,
             onUpClick = onUpClickOffset,
@@ -180,7 +183,7 @@ private fun UiControlsForMode(
 
         InteractionMode.ZOOM_CONTROLS -> ZoomControls(stateFlowHolder)
 
-        InteractionMode.HISTORY_CONTROLS -> HistoryControls(stateFlowHolder, levelProgress)
+        InteractionMode.HISTORY_CONTROLS -> HistoryControls(stateFlowHolder, levelProgress, onDeleteHistory)
 
         InteractionMode.SOLUTION_CONTROLS -> SolutionControls(
             stateFlowHolder,
@@ -207,25 +210,9 @@ private fun stepInteractionMode(currentMode: InteractionMode, step: Int = 1): In
     return InteractionMode.entries[steppedModeOrdinal]
 }
 
-
-/**
- * InteractionMode.MAIN_CONTROLS -> InteractionMode.ZOOM_CONTROLS
- *             InteractionMode.ZOOM_CONTROLS -> InteractionMode.HISTORY_CONTROLS
- *             InteractionMode.HISTORY_CONTROLS -> InteractionMode.SOLUTION_CONTROLS
- *             InteractionMode.SOLUTION_CONTROLS -> InteractionMode.MAIN_CONTROLS
- */
-/*
- * the big question is if the button shows current or upcoming combo
-when (currentMode) {
-                        InteractionMode.MAIN_CONTROLS -> "Controls"
-                        InteractionMode.ZOOM_CONTROLS -> "Zoom"
-                        InteractionMode.SOLUTION_CONTROLS -> "Solution"
-                    }
- */
-
 @Preview(showBackground = true)
 @Composable
-fun InteractionControlWidgetPreview(stateFlowHolder: StateFlowHolder = StateFlowHolder()) {//, levelProgress: LevelProgress = LevelProgress(stateFlowHolder, toastHandler = ToastHandler(@ApplicationContext))) {
+fun InteractionControlWidgetPreview(stateFlowHolder: StateFlowHolder = StateFlowHolder()) {
     InteractionControlWidget(
         stateFlowHolder = stateFlowHolder,
         levelProgress = null,
@@ -240,10 +227,6 @@ fun InteractionControlWidgetPreview(stateFlowHolder: StateFlowHolder = StateFlow
         onRightClickOffset = {},
         onLeftClickSolution = {},
         onRightClickSolution = {},
-
-
+        onDeleteHistory = {},
     )
-// onSliderSolution = {},
-// onToolAClick = {},
-// onToolBClick = {}
 }

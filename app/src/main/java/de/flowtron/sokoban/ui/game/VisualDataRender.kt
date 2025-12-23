@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Color
@@ -22,6 +23,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.flowtron.sokoban.game.Cell
 import de.flowtron.sokoban.game.isPlayer
+import de.flowtron.sokoban.safeLaunch
 import de.flowtron.sokoban.state.Renderer.BOTH
 import de.flowtron.sokoban.state.Renderer.DRAW
 import de.flowtron.sokoban.state.Renderer.TEXT
@@ -38,6 +40,8 @@ fun VisualDataRender(stateFlowHolder: StateFlowHolder, gameViewModel: GameViewMo
     val currentGameDataInfo by stateFlowHolder.gameDataInfoStateFlow.gameDataInfo.collectAsStateWithLifecycle()
     val currentRenderer by stateFlowHolder.renderStateFlow.renderer.collectAsStateWithLifecycle()
     val currentGameTool by stateFlowHolder.gameToolStateFlow.interactionMode.collectAsStateWithLifecycle()
+
+    val scope = rememberCoroutineScope()
 
     if (currentLevelData != null && currentCoordinates != null) {
         val innerLevelData = if (currentGameTool == InteractionMode.SOLUTION_CONTROLS) {
@@ -146,9 +150,12 @@ fun VisualDataRender(stateFlowHolder: StateFlowHolder, gameViewModel: GameViewMo
 
         val curGaLeIn = currentGameDataInfo
         if (curGaLeIn != null) {
-            // FIXME we do not see this in regular testing
+
             Log.d("VisualDataRender", "Loading level $curGaLeIn")
-            gameViewModel.loadLevel(gameDataInfo = curGaLeIn)
+
+            scope.safeLaunch {
+                gameViewModel.loadLevel(gameDataInfo = curGaLeIn)
+            }
         }
     }
 }

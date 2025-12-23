@@ -20,26 +20,22 @@ data class MovementHistory (
         return this.toString().hashCode()
     }
 
+    fun size(): Int {
+        return data.size
+    }
+
     override fun toString(): String {
-        return data.joinToString(",") { step ->
-                Cell.charById(step.toInt()).toString()
-
-        }
-    }
-
-    fun toDirections(): String {
         return data.joinToString("") { step ->
-            val stepInt = step.toInt()
-            var stepDir = "?"
-            when(stepInt){
-                0 -> stepDir = "E"
-                1 -> stepDir = "N"
-                2 -> stepDir = "W"
-                3 -> stepDir = "S"
+            when(step.toInt()) {
+                0 -> "E"
+                1 -> "N"
+                2 -> "W"
+                3 -> "S"
+                else -> "?"
             }
-
-            stepDir
         }
     }
+    fun toDirections() =  this.toString()
+
 }
 

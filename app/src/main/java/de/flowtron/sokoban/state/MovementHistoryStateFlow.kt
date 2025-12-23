@@ -4,7 +4,6 @@ import android.util.Log
 import de.flowtron.sokoban.game.MovementHistory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlin.math.max
 
 class MovementHistoryStateFlow {
     private val mutableMovementHistoryStateFlow: MutableStateFlow<MovementHistory> =
@@ -21,6 +20,7 @@ class MovementHistoryStateFlow {
 
     private val mutableIndexStateFlow: MutableStateFlow<Int> = MutableStateFlow(0)
     fun setIndex(index: Int) {
+        // allowed values for List.size N : 0…N – before 1st step until after Nth step
         val maxIndex = movementHistory.value.data.size
         //Log.d("MovementHistory", "0 <= $index <= $maxIndex")
         if (index >= 0 && index <= maxIndex) {
