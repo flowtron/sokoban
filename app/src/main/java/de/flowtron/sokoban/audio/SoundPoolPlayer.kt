@@ -35,8 +35,10 @@ class SoundPoolPlayer @Inject constructor(
             Log.i("SoundPoolPlayer", "LOADED")
             mLoaded = true
             ready = true
+            toastHandler.showToast("SoundPoolPlayer Is Ready")
+            //stateFlowHolder.
         })
-        mCSoundOne = mSoundPool.load(applicationContext, R.raw.tak, 1)
+        mCSoundOne = mSoundPool.load(applicationContext, R.raw.raphavpires__game_over, 1)
         Log.i("SoundPoolPlayer", "..initialised.")
     }
     /**/
