@@ -61,8 +61,9 @@ fun VisualDataRender(stateFlowHolder: StateFlowHolder, gameViewModel: GameViewMo
         val xRange = (currentX - halfScale)..(currentX + halfScale)
         val yRange = (currentY - halfScale)..(currentY + halfScale)
 
-        // seems required workaround for something that works but is marked as broken :-(
-        @SuppressLint("UnusedBoxWithConstraintsScope")
+        // 2025 seems required workaround for something that works but is marked as broken :-(
+        // 2026 trying w/o
+        //@SuppressLint("UnusedBoxWithConstraintsScope")
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val solutionMovementState =
                 stateFlowHolder.movementSolutionStateFlow.movementSolution.collectAsStateWithLifecycle()
@@ -76,8 +77,7 @@ fun VisualDataRender(stateFlowHolder: StateFlowHolder, gameViewModel: GameViewMo
                 val viewHeightDp = with(density) { constraints.maxHeight.toDp() }
                 val viewSizeDp = minOf(viewWidthDp, viewHeightDp)
                 val sizeFloatDp = viewSizeDp / currentScale.toFloat()
-                val sizeModifier = Modifier.size(sizeFloatDp)
-                val tileSize = sizeModifier
+                val tileSize = Modifier.size(sizeFloatDp)
 
                 val mapDisplayGridModifier = Modifier
                     .background(color = Color.LightGray)

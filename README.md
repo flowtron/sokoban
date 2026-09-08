@@ -16,6 +16,5 @@ Still a lot to do though…
 
 - use bundles of state saved when e.g. the app is sent to the background
 - the levels listing should be optimised for UX
-- the levels listing should include hints toward solved and solved-with-help
 - provide a ZIP import method for packaged combos
 - make the tutorial actually teach the game

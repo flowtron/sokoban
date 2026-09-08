@@ -284,7 +284,7 @@ fun RenderGameScreen(
             //onSliderSolution = { data -> setSolutionIndex(stateFlowHolder, levelProgress, data) }, // FIXME never used!!!!
             onDeleteHistory = {
                 gameViewModel.viewModelScope.safeLaunch {
-                    gameViewModel.updateRoomLevel(done = false, help = false, history = MovementHistory(emptyList()), deleteHistory = true)
+                    gameViewModel.updateRoomLevel(done = false, history = MovementHistory(emptyList()), deleteHistory = true) // help should stay
                     Log.i("GameScreen", "History deleted")
                     stateFlowHolder.mapFinishedStateFlow.setMapFinished(false)
                     stateFlowHolder.gameToolStateFlow.setGameTool(InteractionMode.MAIN_CONTROLS)

@@ -20,7 +20,7 @@ android {
     // TODO: proper versioning .. for now we do it manually
     // manual versioning
     val versionBase = "1.0.0" // base version we are working on
-    val versionCode = 8 // build counter
+    val buildCounter = 8 // build counter
 
     defaultConfig {
         applicationId = "de.flowtron.sokoban"
@@ -28,7 +28,7 @@ android {
         //noinspection OldTargetApi
         targetSdk = 35
 
-        //versionCode = 8//versionCode
+        versionCode = buildCounter
         versionName = "${versionBase}-alpha-${versionCode}" // e.g. "1.0.0-alpha-8"
 
         buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
@@ -47,7 +47,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            val versionName = "${versionBase}-${versionCode}" // e.g "1.0.0-8"
+            val versionName = "${versionBase}-${buildCounter}" // e.g "1.0.0-8"
             buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
             buildConfigField("String", "BUILD_TYPE", "\"RELEASE\"")
         }
