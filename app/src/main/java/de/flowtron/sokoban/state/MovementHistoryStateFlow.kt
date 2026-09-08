@@ -14,8 +14,9 @@ class MovementHistoryStateFlow {
     }
 
     val movementHistory = mutableMovementHistoryStateFlow.asStateFlow()
-    fun showMovementHistory() {
-        Log.d("StateFlowHolder", "MovementHistory = \n${movementHistory.value.toDirections()}")
+    fun showMovementHistory() : String {
+        //Log.d("StateFlowHolder", "MovementHistory = \n${movementHistory.value.toDirections()}")
+        return movementHistory.value.toDirections()
     }
 
     private val mutableIndexStateFlow: MutableStateFlow<Int> = MutableStateFlow(0)

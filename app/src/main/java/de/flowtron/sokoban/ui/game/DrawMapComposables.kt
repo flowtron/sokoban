@@ -24,22 +24,11 @@ fun DrawMapTextFromId(text: String, modifier: Modifier, color: Color) {
     )
 }
 
-//@Composable
-//fun DrawMapTileFromCell(cell: Cell, modifier: Modifier) {
-//    DrawMapTileDrawable(cell.drawable, modifier)
-//}
-
 @Composable
 fun DrawMapTileFromId(tile: Int, modifier: Modifier) {
     val cell = Cell.entries.first { it.id == tile }
     DrawMapTileDrawable(cell.drawable, modifier)
 }
-
-//@Composable
-//fun DrawMapTileFromId(tile: Byte, modifier: Modifier) {
-//    val cell = Cell.entries.first { it.id.toByte() == tile }
-//    DrawMapTileDrawable(cell.drawable, modifier)
-//}
 
 @Composable
 fun DrawMapTileDrawable(drawable: Int?, modifier: Modifier) {

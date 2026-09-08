@@ -12,14 +12,17 @@ android {
     namespace = "de.flowtron.sokoban"
     compileSdk = 35
 
+    // TODO: proper versioning .. for now we do it manually
+    // manual versioning
+    val versionBase = "1.0.0" // base version we are working on
+    val versionCode = 8 // build counter
+
     defaultConfig {
         applicationId = "de.flowtron.sokoban"
         minSdk = 34
         targetSdk = 35
 
-        // TODO: proper versioning .. for now we do it manually
-        versionCode = 7
-        versionName = "1.0.0-alpha-7"
+        versionName = "${versionBase}-alpha-${versionCode}" // e.g. "1.0.0-alpha-8"
 
         buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
         buildConfigField("int", "VERSION_CODE", versionCode.toString())
@@ -32,10 +35,13 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            val versionName = "${versionBase}-${versionCode}" // e.g "1.0.0-8"
+            buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
             buildConfigField("String", "BUILD_TYPE", "\"RELEASE\"")
         }
     }
@@ -81,7 +87,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
+    //androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)

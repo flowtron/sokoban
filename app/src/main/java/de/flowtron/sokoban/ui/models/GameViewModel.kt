@@ -29,6 +29,9 @@ class GameViewModel @Inject constructor(
     private val assetManager: AssetManager,
     private val roomLevelDao: RoomLevelDao,
 ) : ViewModel() {
+
+    private val chatty = false
+
     suspend fun loadLevel(gameDataInfo: GameDataInfo) {
         levelLoader.loadMap(gameDataInfo, assetManager, roomLevelDao)
         stateFlowHolder.mapFinishedStateFlow.setMapFinished(false)
@@ -53,74 +56,56 @@ class GameViewModel @Inject constructor(
         requireNotNull(stateFlowHolder.levelDataStateFlow.levelData.value)
 
     fun checkForWin(): Boolean {
-        //levelProgress.setCommentary(true)
         val result = levelProgress.checkForWin(currentMap())
-        //levelProgress.setCommentary(false)
         return result
     }
-
-//    fun unmatchedFields() : Int? {
-//        return levelProgress.unmatchedFields(currentMap())
-//    }
 
     fun openGoals(): Int? = currentMap().data.flatten().count { it.toInt() == GOAL.id }
 
     fun allowedToMove(from: Coordinates, direction: Coordinates): Boolean {
-        //levelProgress.setCommentary(true)
         val result = levelProgress.allowedToMove(currentMap(), from, direction)
-        //levelProgress.setCommentary(false)
         return result
     }
 
-//    fun allowedToPush(from: Coordinates, direction: Coordinates): Boolean {
-//        return levelProgress.allowedToPush(currentMap(), from, direction)
-//    }
-
-    // if we want to do this commentary toggling repeatedly, there's a nice pattern for it! ;-)
     fun performMove(from: Coordinates, direction: Coordinates) {
-        //levelProgress.setCommentary(true)
         val newMap = levelProgress.performMove(
             currentMap(),
             from,
             direction,
-//            stateFlowHolder.movementHistoryStateFlow,
-//            stateFlowHolder.coordinatesStateFlow,
         )
 
         levelProgress.pushIntoHistory(stateFlowHolder.movementHistoryStateFlow, direction)
         stateFlowHolder.levelDataStateFlow.setLevelData(newMap)
         stateFlowHolder.coordinatesStateFlow.setCoordinates(newMap.findPlayer())
-        Log.i(
-            "GameViewModel",
-            "perform move from $from in $direction leads to history: ${stateFlowHolder.movementHistoryStateFlow.showMovementHistory()}"
-        )
+        if(chatty) {
+            Log.d(
+                "GameViewModel",
+                "perform move from $from in $direction leads to history: ${stateFlowHolder.movementHistoryStateFlow.showMovementHistory()}"
+            )
+        }
 
         if (checkForWin()) {
             toastHandler.showToast("Success")
-            stateFlowHolder.mapFinishedStateFlow.setMapFinished(true)
+            stateFlowHolder.mapFinishedStateFlow.setMapFinished(true) // CHECK: not if this is a history re-run!
 
             viewModelScope.safeLaunch {
                 updateRoomLevel(
                     done = true,
-                    //help = ?,
                     history = stateFlowHolder.movementHistoryStateFlow.movementHistory.value
                 )
             }
         } else {
             viewModelScope.safeLaunch {
                 updateRoomLevel(
-                    //done = ?,
-                    //help = ?,
                     history = stateFlowHolder.movementHistoryStateFlow.movementHistory.value
                 )
             }
         }
-        //levelProgress.setCommentary(false)
     }
 
     suspend fun updateRoomLevel(
-        done: Boolean? = null, //false,
-        help: Boolean? = null, //false,
+        done: Boolean? = null,
+        help: Boolean? = null,
         history: MovementHistory = MovementHistory(emptyList()),
         deleteHistory: Boolean = false,
     ) {

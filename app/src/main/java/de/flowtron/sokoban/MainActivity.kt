@@ -22,6 +22,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import de.flowtron.sokoban.audio.SoundPoolPlayer
 import de.flowtron.sokoban.game.LevelProgress
 import de.flowtron.sokoban.room.RoomHolder
 import de.flowtron.sokoban.state.StateFlowHolder
@@ -34,6 +35,7 @@ import de.flowtron.sokoban.ui.screens.InfoScreenWithLogo
 import de.flowtron.sokoban.ui.theme.SokobanTheme
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -50,17 +52,20 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var levelProgress: LevelProgress
 
+    @Inject
+    lateinit var soundPoolPlayer: SoundPoolPlayer
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         lifecycleScope.launch {
             setContent {
                 val mainAppViewModel: MainAppViewModel = hiltViewModel()
-                val isOnboardedState =
+                val isConfigurationDoneState =
                     stateFlowHolder.configurationDoneStateFlow.done.collectAsStateWithLifecycle()
                 var loadingScreenText by remember {
                     mutableStateOf(
-                        if (isOnboardedState.value) {
+                        if (isConfigurationDoneState.value) {
                             "App is configured."
                         } else {
                             "App is initialising …"
@@ -68,7 +73,8 @@ class MainActivity : ComponentActivity() {
                     )
                 }
                 SokobanTheme {
-                    if (isOnboardedState.value) {
+                    if (isConfigurationDoneState.value) {
+                        Log.i("MainActivity", "SoundPoolPlayer is ${if(soundPoolPlayer.ready){"null"}else{"ready"}}")
                         MainAppView(
                             applicationContext,
                             toastHandler = mainAppViewModel.toastHandler,
@@ -76,9 +82,10 @@ class MainActivity : ComponentActivity() {
                             gameViewModel = gameViewModel,
                             stateFlowHolder = stateFlowHolder,
                             levelProgress = levelProgress,
+                            soundPoolPlayer = soundPoolPlayer,
                         )
                     } else {
-                        if (isOnboardedState.value) {
+                        if (isConfigurationDoneState.value) {
                             Log.i(
                                 "MainActivity",
                                 "App is configured."
@@ -91,11 +98,18 @@ class MainActivity : ComponentActivity() {
                                     "MainActivity",
                                     "Waiting for ${(MINIMUM_INITIALISATION_SHOW_MILLIS / 100.0f).toInt() / 10.0f} seconds…"
                                 )
-                                kotlinx.coroutines.delay(MINIMUM_INITIALISATION_SHOW_MILLIS)
+                                kotlinx.coroutines.delay(MINIMUM_INITIALISATION_SHOW_MILLIS.milliseconds)
 
                                 applyConfiguration()
+                                Log.i("MainActivity", "Initialising the SOUNDPOOLPLAYER")
+                                soundPoolPlayer.initialise(applicationContext)
+                                //val allowDelaySoundPoolPlayerInitialisation = (1_500L).milliseconds
+                                //FIXME: soundPool may require some time for loading the sound
+                                //kotlinx.coroutines.delay(MINIMUM_INITIALISATION_SHOW_MILLIS.milliseconds)
+                                //Log.i("MainActivity", "SoundPoolPlayer is ${if(soundPoolPlayer==null){"null"}else{"ready"}}")
+
                                 roomHolder.markSetupAsDone()
-                                stateFlowHolder.configurationDoneStateFlow.setOnboarded(true)
+                                stateFlowHolder.configurationDoneStateFlow.setDone(true)
 
                                 loadingScreenText = "App is now configured."
 

@@ -27,22 +27,12 @@ class LevelProgress @Inject constructor(
         var result = false
         if(openGoals(map) == 0){
             Log.i("GameViewModel", "You have successfully finished the level.")
-            //toastHandler.showToast("success")
 
             result = true
-            // TODO: must be set if this win is in the officially running game, not solution or history stepping
-            //stateFlowHolder.mapFinishedStateFlow.setMapFinished(true)
         }
         return result
     }
 
-    // CAVEAT EMPTOR: you will get even results only, two for every humanly counted open goal.
-    // oh, wait - this is probably a rule change of mine -- can there not be more boxes than goals, ..
-    // .. which makes it not be a solution requirement
-    fun unmatchedFields(map: LevelData?): Int? = map?.data?.flatten()?.count { it.toInt() == GOAL.id || it.toInt() == BOX.id }
-
-    // OK, so now it should be concrete
-    //fun openGoals(map: LevelData?): Int? = map?.data?.flatten()?.count { it.toInt() == GOAL.id }
     fun openGoals(map: LevelData?): Int? = map?.data?.flatten()?.count { it.toInt() in listOf(GOAL.id, PLAYER_ON_GOAL.id)}
 
     fun allowedToMove(map: LevelData, from: Coordinates, direction: Coordinates): Boolean {
@@ -66,11 +56,10 @@ class LevelProgress @Inject constructor(
         return when (cell) {
             SPACE.id -> true // always allowed to push onto space
             GOAL.id -> true // always allowed to push onto goal
-            else -> false
+            else -> false // deny pushing onto anything but space or goal
         }
     }
 
-    // , historyStateFlow: MovementHistoryStateFlow, coordinatesStateFlow: CoordinatesStateFlow
     fun performMove(map: LevelData, from: Coordinates, direction: Coordinates): LevelData {
         val to = from.add(direction)
         val cellTo = map.get(to)
@@ -95,13 +84,6 @@ class LevelProgress @Inject constructor(
         mutableMap.set(from, cellBehind)
         mutableMap.set(to, cellForward)
 
-        // TODO: has to be gleaned from the return value
-        //stateFlowHolder.coordinatesStateFlow.setCoordinates(to)
-        //stateFlowHolder.levelDataStateFlow.setLevelData(mutableMap.toLevelData())
-
-        // TODO: has to be checked and appropriate actions taken
-        //checkForWin(stateFlowHolder.levelDataStateFlow.levelData.value)
-
         if(withCommentary) Log.v("GameViewModel", "Moved from $from to $to, exposing ${Cell.labelById(cellBehind)} again.")
 
         return mutableMap.toLevelData()
@@ -117,40 +99,6 @@ class LevelProgress @Inject constructor(
         }
     }
 
-    fun naive_performHistory(map: LevelData, moves: MovementHistory): LevelData {
-        val mutableMap = MutableLevelData(map.data)
-        var from = requireNotNull(map.findPlayer())
-
-        if(withCommentary) Log.v("LevelProgress", "performing history of length ${moves.data.size}.")
-        moves.data.forEach { move ->
-            val direction = moveToCoordinates(move)
-            val to = from.add(direction)
-            val cellTo = map.get(to)
-            val cellFrom = map.get(from)
-
-            val cellBehind = cellAfterPusherLeaves(cellFrom)
-            val cellForward = when(cellTo){
-                SPACE.id -> PLAYER.id
-                GOAL.id -> PLAYER_ON_GOAL.id
-                BOX_ON_GOAL.id -> PLAYER_ON_GOAL.id
-                BOX.id -> PLAYER.id
-                else -> PLAYER.id
-            }
-
-            if (cellTo == BOX_ON_GOAL.id || cellTo == BOX.id) {
-                val bufCommentary = withCommentary
-                withCommentary = false
-                performPush(to, direction, mutableMap)
-                withCommentary = bufCommentary
-            }
-            mutableMap.set(from, cellBehind)
-            mutableMap.set(to, cellForward)
-
-            from = to
-        }
-        return mutableMap.toLevelData()
-    }
-
     /*
      * 20250905 need to FIX performHistory
      * there can be corruption happening.
@@ -160,6 +108,9 @@ class LevelProgress @Inject constructor(
      * from before the 1st to after the Nth step.
      *
      * we see a box shoved onto a goal as the final step did not render properly
+     *
+     * 20260908 … sheesh, a year has passed.
+     * Anyway: if the above is still relevant we need to find the proper map and history to check
      *
      */
     fun performHistory(map: LevelData, moves: MovementHistory): LevelData {

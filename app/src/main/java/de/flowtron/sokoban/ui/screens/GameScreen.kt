@@ -16,18 +16,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
+import de.flowtron.sokoban.audio.SoundPoolPlayer
 import de.flowtron.sokoban.game.Coordinates
 import de.flowtron.sokoban.game.LevelData
 import de.flowtron.sokoban.game.LevelProgress
@@ -43,6 +38,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlin.math.abs
+import kotlin.time.Duration.Companion.milliseconds
 
 @Preview(showBackground = true)
 @Composable
@@ -54,14 +50,16 @@ fun GameScreenPreview() {
 fun GameScreen(
     modifier: Modifier = Modifier,
     gameViewModel: GameViewModel = hiltViewModel(),
+    // we're doing requireNotNull below … could we not enforce it here already?
     stateFlowHolder: StateFlowHolder? = null, // FIXME: does this really need to be nullable?
-    levelProgress: LevelProgress? = null, // FIXME: same
+    levelProgress: LevelProgress? = null, // FIXME: same re:nullable
+    soundPoolPlayer: SoundPoolPlayer? = null, // this one is still a problem, meaning null while it shouldn't
 ) {
     val coroutineScope = rememberCoroutineScope()
-    //val coroutineContext = coroutineScope.coroutineContext
     requireNotNull(stateFlowHolder) // see above re:nullable - also below re: default composable
     requireNotNull(levelProgress)
-    RenderGameScreen(coroutineScope, modifier, stateFlowHolder, levelProgress, gameViewModel)
+    //requireNotNull(soundPoolPlayer)
+    RenderGameScreen(coroutineScope, modifier, stateFlowHolder, levelProgress, gameViewModel, soundPoolPlayer)
 }
 
 private fun setSolutionDelta(
@@ -77,36 +75,6 @@ private fun setSolutionDelta(
     }
     performPartialSolution(stateFlowHolder, levelProgress)
 }
-
-//private fun setSolutionIndex(stateFlowHolder: StateFlowHolder, levelProgress: LevelProgress, sliderValue: Float) {
-//    val sliderIndex = sliderValue.toInt()
-//    val solutionMovementHistory =
-//        requireNotNull(stateFlowHolder.movementSolutionStateFlow.movementSolution.value)
-//
-//    val current = stateFlowHolder.movementSolutionStateFlow.indexStateFlow.value
-//    val maxIndex = solutionMovementHistory.data.size - 1
-//    val nextIndex = current + sliderIndex
-//    val upperBound = maxIndex.coerceAtLeast(0)
-//    val next = nextIndex.coerceAtLeast(0).coerceAtMost(upperBound)
-//
-//    //Log.v("GameScreen", "setting index of solution movement history to [$next]")
-//    stateFlowHolder.movementSolutionStateFlow.setIndex(next)
-//    performPartialSolution(stateFlowHolder, levelProgress)
-//}
-
-//private fun setHistoryIndex(stateFlowHolder: StateFlowHolder, levelProgress: LevelProgress, sliderValue: Float) {
-//    val sliderIndex = sliderValue.toInt()
-//    val historyMovementHistory =
-//        requireNotNull(stateFlowHolder.movementHistoryStateFlow.movementHistory.value)
-//
-//    val current = stateFlowHolder.movementHistoryStateFlow.indexStateFlow.value
-//    val maxIndex = historyMovementHistory.data.size - 1
-//    val nextIndex = current + sliderIndex
-//    val upperBound = maxIndex.coerceAtLeast(0)
-//    val next = nextIndex.coerceAtLeast(0).coerceAtMost(upperBound)
-//    stateFlowHolder.movementHistoryStateFlow.setIndex(next)
-//    performPartialHistory(stateFlowHolder, levelProgress)
-//}
 
 private fun performPartialSolution(stateFlowHolder: StateFlowHolder, levelProgress: LevelProgress) {
     val partialSolution = stateFlowHolder.movementSolutionStateFlow.partialSolution()
@@ -143,80 +111,21 @@ private fun performPartialSolution(stateFlowHolder: StateFlowHolder, levelProgre
     }
 }
 
-//private fun performPartialHistory(stateFlowHolder: StateFlowHolder, levelProgress: LevelProgress) {
-//    val partialHistory = stateFlowHolder.movementHistoryStateFlow.partialHistory()
-//
-//    var currentMap = requireNotNull(stateFlowHolder.levelOriginalStateFlow.levelOriginal.value) // start with the original map configuration
-//    var pusherAt = requireNotNull(currentMap.findPlayer())
-//
-//    // perform every step of the partial solution onward from an original configuration
-//    val dondeEsta = partialHistory.toDirections()
-//    dondeEsta.forEach {
-//        //Log.i("GameScreen", "partialSolution char: $it")
-//        val direction = when(it) {
-//            'E' -> Coordinates(1,0)
-//            'N' -> Coordinates(0,-1)
-//            'W' -> Coordinates(-1,0)
-//            'S' -> Coordinates(0,1)
-//            else -> Coordinates(0, 0)
-//        }
-//
-//        val allowed = levelProgress.allowedToMove(currentMap, pusherAt, direction)
-//        if( !allowed ) {
-//            Log.e("GameScreen", "This is bad.") // The history says to go, but our reality check says that's not allowed. Very bad!
-//        }
-//
-//        val changedMap = levelProgress.performMove(currentMap, pusherAt, direction)
-//
-//        stateFlowHolder.levelDataStateFlow.setLevelData(changedMap) // update the map configuration
-//        //stateFlowHolder. .set (changedMap) // update the map configuration
-//        currentMap = changedMap // update the map reference
-//        pusherAt = requireNotNull(changedMap.findPlayer()) // keep pusher coordinates on hand
-//    }
-//}
-
 private fun setOffsetBy(stateFlowHolder: StateFlowHolder, dx: Int, dy: Int) {
     val offBy = requireNotNull(stateFlowHolder.offsetStateFlow.offset.value)
     val newOffBy = offBy.copy(x = offBy.x + dx, y = offBy.y + dy)
     stateFlowHolder.offsetStateFlow.setOffset(newOffBy)
 }
 
-private fun resetOffset(stateFlowHolder: StateFlowHolder) {
+private fun resetOffset(stateFlowHolder: StateFlowHolder, soundPoolPlayer: SoundPoolPlayer?) {
     // place pusher in the center of the viewport, so top-left will depend on zoom-level
-    //stateFlowHolder.offsetStateFlow.setOffset()
-    Log.d("GameScreen", "reset offset: TODO")
-}
 
-// 321_123
-//    ^
-// P  B  S
-private fun getMovementStream(stream: String, index: Int): AnnotatedString {
-    val windowSize = 3
-    val beginIndex = (index - windowSize).coerceAtLeast(0)
-    val elongateRight = if (beginIndex < windowSize) {
-        windowSize - beginIndex
-    } else {
-        0
-    }
-    val endIndex =
-        (index + windowSize + 1 + elongateRight).coerceAtMost(stream.length)
-    val result: AnnotatedString = buildAnnotatedString {
-        withStyle(style = SpanStyle(color = Color.Blue)) {
-            // prefix
-            if (beginIndex < index) {
-                append(stream.substring(beginIndex, index))
-            }
-            // bold
-            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                append(stream[index].toString())
-            }
-            // suffix
-            if (index + 1 < endIndex) {
-                append(stream.substring(index + 1, endIndex))
-            }
-        }
-    }
-    return result
+    //stateFlowHolder.offsetStateFlow.setOffset(…)
+    Log.d("GameScreen", "reset offset: TODO")
+    stateFlowHolder.offsetStateFlow.showOffset()
+
+    if(soundPoolPlayer==null) Log.i("GameScreen", "SoundPoolPlayer is NULL")
+    soundPoolPlayer?.playOne() // indicate click processed - but no joy
 }
 
 private fun onSolutionClicked(stateFlowHolder: StateFlowHolder, gameViewModel: GameViewModel) {
@@ -251,11 +160,8 @@ fun RenderGameScreen(
     stateFlowHolder: StateFlowHolder,
     levelProgress: LevelProgress,
     gameViewModel: GameViewModel,
+    soundPoolPlayer: SoundPoolPlayer?,
 ) {
-    // NOTICE:
-    // difference between
-    // var abc by remember { mutableStateOf(0) }
-    // val abc = remember { mutableStateOf(0) }
     val dragPusherX = remember { mutableFloatStateOf(0f) }
     val dragPusherY = remember { mutableFloatStateOf(0f) }
     val swipeJob = remember { mutableStateOf<Job?>(null) }
@@ -266,54 +172,6 @@ fun RenderGameScreen(
     val dragThreshold = 100f
 
     val currentInteractionMode by stateFlowHolder.gameToolStateFlow.interactionMode.collectAsStateWithLifecycle()
-
-    /*
-    fun handleSwipe(deltaX: Float, deltaY: Float) {
-        Log.v("GameScreen", "handleSwipe: deltaX=$deltaX, deltaY=$deltaY")
-        val currentLocation = stateFlowHolder.coordinatesStateFlow.coordinates.value
-        if (currentLocation == null) {
-            Log.w("GameScreen", "Cannot handle swipe, current location is null.")
-            return
-        }
-
-        val direction = if (abs(deltaX) > abs(deltaY)) {
-            if (deltaX > 0) Coordinates(1, 0) else Coordinates(-1, 0)
-        } else {
-            if (deltaY > 0) Coordinates(0, 1) else Coordinates(0, -1)
-        }
-        if (stateFlowHolder.mapFinishedStateFlow.finished.value) {
-            Log.d("GameScreen", "Level is finished, swipe ignored.")
-            // Optionally show a Toast or some feedback
-        } else {
-            if (gameViewModel.allowedToMove(currentLocation, direction)) {
-                gameViewModel.performMove(currentLocation, direction)
-            } else {
-                Log.d(
-                    "GameScreen",
-                    "Move not allowed in direction: $direction from $currentLocation"
-                )
-            }
-        }
-    }
-
-    suspend fun performRepeatedSwipe(
-        initialDeltaX: Float,
-        initialDeltaY: Float,
-        dragRepeatIntervalMillis: Long,
-    ) {
-        while (isActive) {
-            handleSwipe(initialDeltaX, initialDeltaY)
-            delay(dragRepeatIntervalMillis)
-        }
-    }
-
-    fun endSwipe() {
-        dragPusherX = 0f
-        dragPusherY = 0f;
-        swipeJob?.cancel()
-    }
-    */
-
 
     Box(
         modifier = modifier
@@ -378,8 +236,9 @@ fun RenderGameScreen(
             VisualDataRender(stateFlowHolder, gameViewModel)
         }
 
-        requireNotNull(stateFlowHolder)
-        requireNotNull(levelProgress)
+        //requireNotNull(stateFlowHolder)
+        //requireNotNull(levelProgress)
+        ////requireNotNull(soundPoolPlayer)
 
         val coordinateState = stateFlowHolder.coordinatesStateFlow.coordinates
         val nowAtState = coordinateState.collectAsStateWithLifecycle()
@@ -388,10 +247,6 @@ fun RenderGameScreen(
 
         val currentRenderer = stateFlowHolder.renderStateFlow.renderer.collectAsStateWithLifecycle()
 
-        /*
-            onToolAClick = { Log.d("GameInput", "Tool A Clicked") },
-            onToolBClick = { Log.d("GameInput", "Tool B Clicked") },
-         */
         InteractionControlWidget(
             stateFlowHolder = stateFlowHolder,
             levelProgress = levelProgress,
@@ -400,16 +255,15 @@ fun RenderGameScreen(
                 .padding(bottom = 0.dp),
             onSolutionClick = { onSolutionClicked(stateFlowHolder, gameViewModel) },
             onRenderClick = { stateFlowHolder.renderStateFlow.setRenderer(currentRenderer.value.next()) },
-            onZoomClick = { Log.d("GameInput", "Zoom Clicked") },
-            onHistoryClick = { Log.d("GameInput", "History Clicked") },
+            onZoomClick = {}, //Log.d("GameInput", "Zoom Clicked") },
+            onHistoryClick = {}, // Log.d("GameInput", "History Clicked") },
 
             onLeftClickOffset = { setOffsetBy(stateFlowHolder, -1, 0) },
             onRightClickOffset = { setOffsetBy(stateFlowHolder, +1, 0) },
             onUpClickOffset = { setOffsetBy(stateFlowHolder, 0, -1) },
-            onCenterClickOffset = { resetOffset(stateFlowHolder) },
+            onCenterClickOffset = { resetOffset(stateFlowHolder, soundPoolPlayer) },
             onDownClickOffset = { setOffsetBy(stateFlowHolder, 0, +1) },
 
-            //                Log.d("SolutionControls STEP1_LEFT", "setDelta -1")
             onLeftClickSolution = {
                 setSolutionDelta(
                     stateFlowHolder,
@@ -431,6 +285,7 @@ fun RenderGameScreen(
                 gameViewModel.viewModelScope.safeLaunch {
                     gameViewModel.updateRoomLevel(done = false, help = false, history = MovementHistory(emptyList()), deleteHistory = true)
                     Log.i("GameScreen", "History deleted")
+                    stateFlowHolder.gameToolStateFlow.setGameTool(InteractionMode.MAIN_CONTROLS)
                 }
             },
         )
@@ -481,10 +336,10 @@ private suspend fun performRepeatedSwipeAction(
     // This assumes the coroutine calling this is active.
     // The `isActive` check from `kotlinx.coroutines.isActive` is implicitly
     // handled by cancellable suspending functions like `delay`.
-    // If the coroutine is cancelled, delay will throw CancellationException.
+    // If the coroutine is canceled, delay will throw CancellationException.
     while (true) { // Loop will be broken by coroutine cancellation
         handleSwipeAction(initialDeltaX, initialDeltaY, stateFlowHolder, gameViewModel)
-        delay(dragRepeatIntervalMillis)
+        delay(dragRepeatIntervalMillis.milliseconds)
     }
 }
 

@@ -1,55 +1,126 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="96dp"
-    android:height="96dp"
-    android:viewportWidth="96.0"
-    android:viewportHeight="96.0"
-    ><!--
-        floor, floor, floor
-        pusher, box, goal
-        wall, solved, wall
-        wall, wall, wall
+    android:width="72dp"
+    android:height="48dp"
+    android:viewportWidth="72.0"
+    android:viewportHeight="48.0">
 
-    ft rgb: #10a0c0
--->
-    <!-- background -->
+    <!-- different renderers gave us trouble,
+    we have refactored the paths, except for the pusher ..
+    .. placed it last, so if that's what is confusing the renderers it should only affect the pusher itself ..
+    .. without anything behind it in the source.
+    Well .. AndroidStudio is showing /different/ problems now .. *sigh* ..
+    -->
+
     <path
-        android:fillColor="#ff202836"
-        android:pathData="M0,0H964L96,96H-96,0z" />
+        android:fillColor="@color/worldOutsideBG"
+        android:pathData="M0,0 L96,0 L96,96 L0,96 Z" />
 
-    <!-- ROW 1 : floor, floor, floor -->
-    <!-- floor -->
+    <!-- 2,1 : box -->
     <group
-        android:translateX="12"
+        android:translateX="24"
         android:translateY="0">
         <path
-            android:fillColor="#ff803300"
-            android:pathData="M0,0H24L24,24H-24,0z" />
-    </group>
-    <!-- floor -->
-    <group
-        android:translateX="36"
-        android:translateY="0">
-        <path
-            android:fillColor="#ff803300"
-            android:pathData="M0,0H24L24,24H-24,0z" />
-    </group>
-    <!-- floor -->
-    <group
-        android:translateX="60"
-        android:translateY="0">
-        <path
-            android:fillColor="#ff803300"
-            android:pathData="M0,0H24L24,24H-24,0z" />
+            android:fillColor="#ff9b6303"
+            android:pathData="M0,0L24,0L24,24L0,24Z" />
+        <group>
+            <path
+                android:fillColor="#ffea9405"
+                android:pathData="M0,0 L24,0 L24,2 L0,2 Z" />
+            <path
+                android:fillColor="#ffea9405"
+                android:pathData="M0,24 L24,24 L24,22 L0,22 Z" />
+            <path
+                android:fillColor="#ffea9405"
+                android:pathData="M0,0 L0,24 L2,24 L2,0 Z" />
+            <path
+                android:fillColor="#ffea9405"
+                android:pathData="M22,0 L22,24 L24,24 L24,0 Z" />
+        </group>
+        <group>
+            <path
+                android:strokeColor="#ffb67b00"
+                android:strokeWidth="2"
+                android:pathData="M4,4 L20,20 Z" />
+            <path
+                android:strokeColor="#ffb67b00"
+                android:strokeWidth="2"
+                android:pathData="M4,20 L20,4 Z" />
+        </group>
     </group>
 
-    <!-- ROW 2 : pusher, box, goal -->
-    <!-- pusher -->
+    <!-- 3,1 : goal -->
     <group
-        android:translateX="12"
+        android:translateX="48"
+        android:translateY="0">
+        <path
+            android:fillColor="#ff803300"
+            android:pathData="M0,0L24,0L24,24L0,24Z" />
+        <group>
+            <path
+                android:fillColor="#ffea9405"
+                android:pathData="M0,0 L24,0 L24,2 L0,2 Z" />
+            <path
+                android:fillColor="#ffea9405"
+                android:pathData="M0,24 L24,24 L24,22 L0,22 Z" />
+            <path
+                android:fillColor="#ffea9405"
+                android:pathData="M0,0 L0,24 L2,24 L2,0 Z" />
+            <path
+                android:fillColor="#ffea9405"
+                android:pathData="M22,0 L22,24 L24,24 L24,0 Z" />
+        </group>
+        <group>
+            <path
+                android:strokeColor="#ffffa76d"
+                android:strokeWidth="2"
+                android:pathData="M4,4 L20,20 Z" />
+            <path
+                android:strokeColor="#ffffa76d"
+                android:strokeWidth="2"
+                android:pathData="M4,20 L20,4 Z" />
+        </group>
+    </group>
+
+    <!-- 2,2 : box on goal -->
+    <group
+        android:translateX="24"
         android:translateY="24">
         <path
+            android:fillColor="#ff9b6303"
+            android:pathData="M0,0L24,0L24,24L0,24Z" />
+        <group>
+            <path
+                android:fillColor="#ffea9405"
+                android:pathData="M0,0 L24,0 L24,2 L0,2 Z" />
+            <path
+                android:fillColor="#ffea9405"
+                android:pathData="M0,24 L24,24 L24,22 L0,22 Z" />
+            <path
+                android:fillColor="#ffea9405"
+                android:pathData="M0,0 L0,24 L2,24 L2,0 Z" />
+            <path
+                android:fillColor="#ffea9405"
+                android:pathData="M22,0 L22,24 L24,24 L24,0 Z" />
+        </group>
+        <group>
+            <path
+                android:strokeColor="#ff0d712b"
+                android:strokeWidth="2"
+                android:pathData="M4,4 L20,20 Z" />
+            <path
+                android:strokeColor="#ff0d712b"
+                android:strokeWidth="2"
+                android:pathData="M4,20 L20,4 Z" />
+        </group>
+    </group>
+
+    <!-- 1,1 : pusher -->
+    <group
+        android:translateX="0"
+        android:translateY="0">
+        <path
             android:fillColor="#ffdb7100"
-            android:pathData="M0,0H24L24,24H-24,0z" />
+            android:pathData="M0,0 L24,0 L24,24 L0,24 Z" />
         <path
             android:fillColor="#ffffffff"
             android:pathData="M4,8h5v4h-5z" />
@@ -65,138 +136,6 @@
         <path
             android:fillColor="#ff800000"
             android:pathData="M9,18h10l-2,2h-10l-2,-2z" />
-    </group>
-    <!-- box -->
-    <group
-        android:translateX="36"
-        android:translateY="24">
-        <path
-            android:fillColor="#ff9b6303"
-            android:pathData="M0,0H24L24,24H-24,0z" />
-        <group>
-            <path
-                android:fillColor="#ffea9405"
-                android:pathData="M0,2L24,2L24,0L0,0z" />
-            <path
-                android:fillColor="#ffea9405"
-                android:pathData="M22,0 l0,24 l2,0 l0,-24 z" />
-            <path
-                android:fillColor="#ffea9405"
-                android:pathData="M0,22L24,22L24,24L0,24L0,22" />
-            <path
-                android:fillColor="#ffea9405"
-                android:pathData="M0,24L2,24L2,0L0,0z" />
-        </group>
-        <group>
-            <path
-                android:strokeColor="#ffb67b00"
-                android:strokeWidth="2"
-                android:strokeLineJoin="round"
-                android:pathData="M4,4l-0.1,0.1l0.2,-0.2l16,16l-0.2,0.2Z" />
-            <path
-                android:strokeColor="#ffb67b00"
-                android:strokeWidth="2"
-                android:strokeLineJoin="round"
-                android:pathData="M20,4l-0.1,0.1l0.2,-0.2l-16,16l-0.2,0.2Z" />
-        </group>
-    </group>
-    <!-- goal -->
-    <group
-        android:translateX="60"
-        android:translateY="24">
-        <path
-            android:fillColor="#ff803300"
-            android:pathData="M0,0H24L24,24H-24,0z" />
-        <group>
-            <path
-                android:strokeColor="#ffffa76d"
-                android:strokeWidth="2"
-                android:strokeLineJoin="round"
-                android:pathData="M4,4l-0.1,0.1l0.2,-0.2l16,16l-0.2,0.2z" />
-            <path
-                android:strokeColor="#ffffa76d"
-                android:strokeWidth="2"
-                android:strokeLineJoin="round"
-                android:pathData="M20,4l-0.1,0.1l0.2,-0.2l-16,16l-0.2,0.2z" />
-        </group>
-    </group>
-
-    <!-- ROW 3 : wall, solved, wall -->
-    <!-- wall -->
-    <group
-        android:translateX="12"
-        android:translateY="48">
-        <path
-            android:fillColor="#FF6f5044"
-            android:pathData="M0,0H24L24,24H-24,0z" />
-    </group>
-    <!-- box on goal : solved -->
-    <group
-        android:translateX="36"
-        android:translateY="48">
-        <path
-            android:fillColor="#ff9b6303"
-            android:pathData="M0,0H24L24,24H-24,0z" />
-        <group>
-            <path
-                android:fillColor="#ffea9405"
-                android:pathData="M0,2L24,2L24,0L0,0z" />
-            <path
-                android:fillColor="#ffea9405"
-                android:pathData="M22,0 l0,24 l2,0 l0,-24 z" />
-            <path
-                android:fillColor="#ffea9405"
-                android:pathData="M0,22L24,22L24,24L0,24L0,22" />
-            <path
-                android:fillColor="#ffea9405"
-                android:pathData="M0,24L2,24L2,0L0,0z" />
-        </group>
-        <group>
-            <path
-                android:strokeColor="#ff0d712b"
-                android:strokeWidth="2"
-                android:strokeLineJoin="round"
-                android:pathData="M4,4l-0.1,0.1l0.2,-0.2l16,16l-0.2,0.2z" />
-            <path
-                android:strokeColor="#ff0d712b"
-                android:strokeWidth="2"
-                android:strokeLineJoin="round"
-                android:pathData="M20,4l-0.1,0.1l0.2,-0.2l-16,16l-0.2,0.2z" />
-        </group>
-    </group>
-    <!-- wall -->
-    <group
-        android:translateX="60"
-        android:translateY="48">
-        <path
-            android:fillColor="#FF6f5044"
-            android:pathData="M0,0H24L24,24H-24,0z" />
-    </group>
-
-    <!-- ROW 4 : wall, wall, wall -->
-    <!-- wall -->
-    <group
-        android:translateX="12"
-        android:translateY="72">
-        <path
-            android:fillColor="#FF6f5044"
-            android:pathData="M0,0H24L24,24H-24,0z" />
-    </group>
-    <!-- wall -->
-    <group
-        android:translateX="36"
-        android:translateY="72">
-        <path
-            android:fillColor="#FF6f5044"
-            android:pathData="M0,0H24L24,24H-24,0z" />
-    </group>
-    <!-- wall -->
-    <group
-        android:translateX="60"
-        android:translateY="72">
-        <path
-            android:fillColor="#FF6f5044"
-            android:pathData="M0,0H24L24,24H-24,0z" />
     </group>
 
 </vector>
