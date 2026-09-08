@@ -131,20 +131,21 @@ private fun resetOffset(stateFlowHolder: StateFlowHolder, soundPoolPlayer: Sound
 private fun onSolutionClicked(stateFlowHolder: StateFlowHolder, gameViewModel: GameViewModel) {
     val gameDataInfo = stateFlowHolder.gameDataInfoStateFlow.gameDataInfo.value
     if (gameDataInfo != null) {
-        Log.d("GameScreen", "SOLUTION may be found at ${gameDataInfo.getSolutionFilepath()}")
+        //Log.d("GameScreen", "SOLUTION may be found at ${gameDataInfo.getSolutionFilepath()}")
         val movementHistory = gameViewModel.loadSolution(gameDataInfo)
         if (movementHistory != null) {
             //Log.d("GameScreen", "You got HELP! The solution is: ${movementHistory.toDirections()}")
             stateFlowHolder.movementSolutionStateFlow.setMovementSolution(movementHistory)
             stateFlowHolder.movementSolutionStateFlow.setIndex(0)
+            logLevelData(stateFlowHolder.levelDataStateFlow.levelData.value)
         } else {
             Log.d("GameScreen", "No solution found.")
         }
     }
 }
 
-fun logLevelData(levelData: LevelData) {
-    levelData.data.forEach { row ->
+fun logLevelData(levelData: LevelData?) {
+    levelData?.data?.forEach { row ->
         var rowStr = ""
         row.forEach { cell ->
             rowStr += cell
@@ -285,6 +286,7 @@ fun RenderGameScreen(
                 gameViewModel.viewModelScope.safeLaunch {
                     gameViewModel.updateRoomLevel(done = false, help = false, history = MovementHistory(emptyList()), deleteHistory = true)
                     Log.i("GameScreen", "History deleted")
+                    stateFlowHolder.mapFinishedStateFlow.setMapFinished(false)
                     stateFlowHolder.gameToolStateFlow.setGameTool(InteractionMode.MAIN_CONTROLS)
                 }
             },

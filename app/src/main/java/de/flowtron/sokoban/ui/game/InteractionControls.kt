@@ -7,9 +7,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.BlurCircular
 import androidx.compose.material.icons.filled.Delete
@@ -96,9 +96,10 @@ fun CoordinateSteppers(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val btnModifier = Modifier.weight(1f) // USELESS .. if all are the same
-        // ArrowBack/ArrowForward could be NavigateBack/NavigateNext .. but that name is "wrong"
-        IconButton(onLeftClick, btnModifier, Icons.Filled.ArrowBack, "Left")
+        val btnModifier = Modifier//.weight(1f) // USELESS if all are the same
+        // ArrowBack/ArrowForward could be NavigateBack/NavigateNext, but that name is "wrong"
+        // now it says the Icons.Filled ones are deprecated : find proper set of matching arrows
+        IconButton(onLeftClick, btnModifier, Icons.AutoMirrored.Filled.ArrowBack, "Left")
         IconButton(onUpClick, btnModifier, Icons.Filled.ArrowUpward, "Up")
         IconButton(
             onClick = onCenterClick,
@@ -107,7 +108,7 @@ fun CoordinateSteppers(
             "Center"
         )
         IconButton(onDownClick, btnModifier, Icons.Filled.ArrowDownward, "Down")
-        IconButton(onRightClick, btnModifier, Icons.Filled.ArrowForward, "Right")
+        IconButton(onRightClick, btnModifier, Icons.AutoMirrored.Filled.ArrowForward, "Right")
     }
 }
 
@@ -188,7 +189,7 @@ fun HistoryControls(
                 },
                 modifier = Modifier.weight(1f)
             ) {
-                Icon(Icons.Filled.ArrowBack, contentDescription = "Left")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Left")
             }
             Button(
                 onClick = {
@@ -208,7 +209,7 @@ fun HistoryControls(
                 },
                 modifier = Modifier.weight(1f)
             ) {
-                Icon(Icons.Filled.ArrowForward, contentDescription = "Right")
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Right")
             }
         }
         // INDEX SLIDER
@@ -271,11 +272,6 @@ fun stepThroughHistory(
     levelProgress: LevelProgress?,
     delta: Int
 ) {
-    /* FIXME:
-     * the state changes fine already, but the roomLevel value for history is not changed ..
-     * .. which is fine for going forward again.
-     * But we need to fix the history to whatever step we may start walking about again!
-     */
     if (levelProgress != null) {
         stateFlowHolder.movementHistoryStateFlow.stepIndex(delta)
         val partialHistory = stateFlowHolder.movementHistoryStateFlow.partialHistory()
@@ -284,6 +280,7 @@ fun stepThroughHistory(
         val changedMap = levelProgress.performHistory(origMap, partialHistory)
         stateFlowHolder.levelDataStateFlow.setLevelData(changedMap)
         stateFlowHolder.coordinatesStateFlow.setCoordinates(changedMap.findPlayer())
+        stateFlowHolder.mapFinishedStateFlow.setMapFinished(false)
 
         Log.d(
             "HistoryControls",
@@ -291,6 +288,7 @@ fun stepThroughHistory(
         )
     } else {
         Log.d("HistoryControls", "without LEVEL_PROGRESS we can't rewrite HISTORY")
+        stateFlowHolder.gameToolStateFlow.setGameTool(InteractionMode.MAIN_CONTROLS)
     }
 }
 
@@ -362,10 +360,10 @@ fun SolutionControls(
             ) {
 
                 Button(onClick = onLeftClick, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "Left")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Left")
                 }
                 Button(onClick = onRightClick, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Filled.ArrowForward, contentDescription = "Right")
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Right")
                 }
             }
             // INDEX SLIDER

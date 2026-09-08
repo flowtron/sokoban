@@ -154,7 +154,8 @@ class LevelProgress @Inject constructor(
     }
 
     fun pushIntoHistory(historyStateFlow: MovementHistoryStateFlow, direction: Coordinates) {
-        val newHistory: MutableList<Byte> = historyStateFlow.movementHistory.value.data.toMutableList()
+        val newHistory: MutableList<Byte> = historyStateFlow.partialHistory().data.toMutableList() // ensure any backstep on history is observed
+        if(withCommentary) historyStateFlow.showPartialHistory()
         // EAST NORTH WEST SOUTH 0 1 2 3
         var stepByte: Byte = 0x7
         when (direction.x) {

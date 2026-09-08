@@ -15,13 +15,25 @@ class StateFlowHolder @Inject constructor() {
 
     val mapFinishedStateFlow = MapFinishedStateFlow()
 
-    val levelOriginalStateFlow = LevelOriginalStateFlow() // state of map (original)
+    /*
+     * different LEVEL states
+     * - levelOriginal : original map
+     * - levelData     : current map
+     * - levelSolution : current map of solution
+     *
+     * original is for comparison/reset, we switch gameplay/solution as displayed per active tool (InteractionControls)
+     *
+     * different MOVEMENT states
+     * - movementHistory : gameplay history
+     * - movementSolution : solution history
+     *
+     */
+    val levelOriginalStateFlow = LevelOriginalStateFlow()
+    val levelDataStateFlow = LevelDataStateFlow()
+    val movementHistoryStateFlow = MovementHistoryStateFlow()
 
-    val levelDataStateFlow = LevelDataStateFlow() // state of map of game
-    val movementHistoryStateFlow = MovementHistoryStateFlow() // history of moves of game
-
-    val levelSolutionStateFlow = LevelSolutionStateFlow() // state of map of solution
-    val movementSolutionStateFlow = MovementSolutionStateFlow() // history of moves of solution
+    val levelSolutionStateFlow = LevelSolutionStateFlow()
+    val movementSolutionStateFlow = MovementSolutionStateFlow()
 
     val coordinatesStateFlow = CoordinatesStateFlow()
     val offsetStateFlow = OffsetStateFlow()
