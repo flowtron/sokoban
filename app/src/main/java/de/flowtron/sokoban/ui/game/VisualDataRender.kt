@@ -40,6 +40,7 @@ fun VisualDataRender(stateFlowHolder: StateFlowHolder, gameViewModel: GameViewMo
     val currentGameDataInfo by stateFlowHolder.gameDataInfoStateFlow.gameDataInfo.collectAsStateWithLifecycle()
     val currentRenderer by stateFlowHolder.renderStateFlow.renderer.collectAsStateWithLifecycle()
     val currentGameTool by stateFlowHolder.gameToolStateFlow.interactionMode.collectAsStateWithLifecycle()
+    val currentIsMapFinished by stateFlowHolder.mapFinishedStateFlow.finished.collectAsStateWithLifecycle()
 
     val scope = rememberCoroutineScope()
 
@@ -90,10 +91,10 @@ fun VisualDataRender(stateFlowHolder: StateFlowHolder, gameViewModel: GameViewMo
                                 this
                             }
                         } else {
-                            val isMapFinished = stateFlowHolder.mapFinishedStateFlow.finished.value
-                            if (isMapFinished) {
-                                //this.proColorFilter(ColorFilter.colorMatrix(greyscaleMatrix()))
-                                this.proColorFilter(ColorFilter.colorMatrix(greenTintMatrix()))
+                            if (currentIsMapFinished) {
+                                val matrix = greenTintMatrix() // greyscaleMatrix()
+                                val filter = ColorFilter.colorMatrix(matrix)
+                                this.proColorFilter(filter)
                             } else {
                                 this
                             }

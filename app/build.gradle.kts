@@ -2,15 +2,20 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.dagger.hilt)
     alias(libs.plugins.devtools.ksp)
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11)
+    }
+}
+
 android {
     namespace = "de.flowtron.sokoban"
-    compileSdk = 35
+    compileSdk = 37
 
     // TODO: proper versioning .. for now we do it manually
     // manual versioning
@@ -20,8 +25,10 @@ android {
     defaultConfig {
         applicationId = "de.flowtron.sokoban"
         minSdk = 34
+        //noinspection OldTargetApi
         targetSdk = 35
 
+        //versionCode = 8//versionCode
         versionName = "${versionBase}-alpha-${versionCode}" // e.g. "1.0.0-alpha-8"
 
         buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
@@ -49,11 +56,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
-        }
-    }
+
     buildFeatures {
         compose = true
         buildConfig = true
