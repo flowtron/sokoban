@@ -36,7 +36,7 @@ import androidx.navigation.navArgument
 import de.flowtron.sokoban.AppDestinations.GAME_ROUTE
 import de.flowtron.sokoban.AppDestinations.LEVELS_ROUTE
 import de.flowtron.sokoban.AppDestinations.SETTINGS_ROUTE
-import de.flowtron.sokoban.audio.SoundPoolPlayer
+//import de.flowtron.sokoban.audio.SoundPoolPlayer
 import de.flowtron.sokoban.game.LevelProgress
 import de.flowtron.sokoban.state.StateFlowHolder
 import de.flowtron.sokoban.ui.models.GameViewModel
@@ -60,7 +60,7 @@ fun MainAppView(
     gameViewModel: GameViewModel,
     stateFlowHolder: StateFlowHolder,
     levelProgress: LevelProgress,
-    soundPoolPlayer: SoundPoolPlayer,
+//    soundPoolPlayer: SoundPoolPlayer,
 ) {
     val navController = rememberNavController()
 

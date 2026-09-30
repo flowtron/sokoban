@@ -18,11 +18,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
-import de.flowtron.sokoban.audio.SoundPoolPlayer
 import de.flowtron.sokoban.game.LevelProgress
 import de.flowtron.sokoban.room.RoomHolder
 import de.flowtron.sokoban.state.StateFlowHolder
@@ -42,6 +41,7 @@ class MainActivity : ComponentActivity() {
 
     private val levelsViewModel: LevelsViewModel by viewModels()
     private val gameViewModel: GameViewModel by viewModels()
+    //private val viewModelStoreOwner: ViewModelStoreOwner by viewModels()
 
     @Inject
     lateinit var roomHolder: RoomHolder
@@ -51,9 +51,6 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var levelProgress: LevelProgress
-
-    @Inject
-    lateinit var soundPoolPlayer: SoundPoolPlayer
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,7 +71,6 @@ class MainActivity : ComponentActivity() {
                 }
                 SokobanTheme {
                     if (isConfigurationDoneState.value) {
-                        Log.i("MainActivity", "SoundPoolPlayer is ${if(soundPoolPlayer.ready){"null"}else{"ready"}}")
                         MainAppView(
                             applicationContext,
                             toastHandler = mainAppViewModel.toastHandler,
@@ -82,7 +78,6 @@ class MainActivity : ComponentActivity() {
                             gameViewModel = gameViewModel,
                             stateFlowHolder = stateFlowHolder,
                             levelProgress = levelProgress,
-                            soundPoolPlayer = soundPoolPlayer,
                         )
                     } else {
                         if (isConfigurationDoneState.value) {
@@ -101,8 +96,11 @@ class MainActivity : ComponentActivity() {
                                 kotlinx.coroutines.delay(MINIMUM_INITIALISATION_SHOW_MILLIS.milliseconds)
 
                                 applyConfiguration()
+
+                                /*// deprecated in JAVA
                                 Log.i("MainActivity", "Initialising the SOUNDPOOLPLAYER")
-                                soundPoolPlayer.initialise(applicationContext)
+                                soundPoolPlayer.initialise(applicationContext)*/
+
                                 //val allowDelaySoundPoolPlayerInitialisation = (1_500L).milliseconds
                                 //FIXME: soundPool may require some time for loading the sound
                                 //kotlinx.coroutines.delay(MINIMUM_INITIALISATION_SHOW_MILLIS.milliseconds)
@@ -118,15 +116,14 @@ class MainActivity : ComponentActivity() {
                         }
 
                         val thanksText = """
-        
-                            Enjoy the game!
-                                    
-                            You can only push, not pull boxes. The boxes and goals are all the same. Least pushes, then moves wins in comparison. 
-                                    
-                                    
-                            🫶 for BaZi, Fritz and all you others 😃 
-        
+                            Enjoy the game! 
+                                                                        
+                            🫶 for BaZi, Fritz and all you others 😃
                         """.trimIndent()
+
+                        // FIXME
+                        // add something like this into ROUTE:/doc/introduction
+                        // You can only push, not pull boxes. The boxes and goals are all the same. Least pushes, then moves wins in comparison.
 
                         // on my screen the URL text was smushed on the right edge
                         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -139,7 +136,7 @@ class MainActivity : ComponentActivity() {
                                 line2Text = "S O K O B A N",
                                 multilineText1 = thanksText,
                                 multilineText2 = loadingScreenText,
-                                copyrightText = "©2025 Florian 'flowtron' Schulte",
+                                copyrightText = "©2025-2026 Florian 'flowtron' Schulte",
                                 urlText = "flowtron.de",
                                 onMultilineTextChange = { newText ->
                                     loadingScreenText = newText
@@ -163,6 +160,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun applyConfiguration() {
+        // TODO: switch from STATUS table to CONFIG table
         val config = roomHolder.getRoomStatus()
         if (config != null) {
             stateFlowHolder.dragSensitivityStateFlow.setDragSensitivity(config.dragSensitivity)

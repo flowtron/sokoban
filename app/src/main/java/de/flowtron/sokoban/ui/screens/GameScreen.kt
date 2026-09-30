@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
-import de.flowtron.sokoban.audio.SoundPoolPlayer
+//import de.flowtron.sokoban.audio.SoundPoolPlayer
 import de.flowtron.sokoban.game.Coordinates
 import de.flowtron.sokoban.game.LevelData
 import de.flowtron.sokoban.game.LevelProgress
@@ -53,13 +53,13 @@ fun GameScreen(
     // we're doing requireNotNull below … could we not enforce it here already?
     stateFlowHolder: StateFlowHolder? = null, // FIXME: does this really need to be nullable?
     levelProgress: LevelProgress? = null, // FIXME: same re:nullable
-    soundPoolPlayer: SoundPoolPlayer? = null, // this one is still a problem, meaning null while it shouldn't
+//    soundPoolPlayer: SoundPoolPlayer? = null, // this one is still a problem, meaning null while it shouldn't
 ) {
     val coroutineScope = rememberCoroutineScope()
     requireNotNull(stateFlowHolder) // see above re:nullable - also below re: default composable
     requireNotNull(levelProgress)
     //requireNotNull(soundPoolPlayer)
-    RenderGameScreen(coroutineScope, modifier, stateFlowHolder, levelProgress, gameViewModel, soundPoolPlayer)
+    RenderGameScreen(coroutineScope, modifier, stateFlowHolder, levelProgress, gameViewModel)//, soundPoolPlayer)
 }
 
 private fun setSolutionDelta(
@@ -117,15 +117,15 @@ private fun setOffsetBy(stateFlowHolder: StateFlowHolder, dx: Int, dy: Int) {
     stateFlowHolder.offsetStateFlow.setOffset(newOffBy)
 }
 
-private fun resetOffset(stateFlowHolder: StateFlowHolder, soundPoolPlayer: SoundPoolPlayer?) {
+private fun resetOffset(stateFlowHolder: StateFlowHolder/*, soundPoolPlayer: SoundPoolPlayer?*/) {
     // place pusher in the center of the viewport, so top-left will depend on zoom-level
 
     //stateFlowHolder.offsetStateFlow.setOffset(…)
     Log.d("GameScreen", "reset offset: TODO")
     stateFlowHolder.offsetStateFlow.showOffset()
 
-    if(soundPoolPlayer==null) Log.i("GameScreen", "SoundPoolPlayer is NULL")
-    soundPoolPlayer?.playOne() // indicate click processed - but no joy
+    /*if(soundPoolPlayer==null) Log.i("GameScreen", "SoundPoolPlayer is NULL")
+    soundPoolPlayer?.playOne() // indicate click processed - but no joy*/
 }
 
 private fun onSolutionClicked(stateFlowHolder: StateFlowHolder, gameViewModel: GameViewModel) {
@@ -161,7 +161,7 @@ fun RenderGameScreen(
     stateFlowHolder: StateFlowHolder,
     levelProgress: LevelProgress,
     gameViewModel: GameViewModel,
-    soundPoolPlayer: SoundPoolPlayer?,
+//    soundPoolPlayer: SoundPoolPlayer?,
 ) {
     val dragPusherX = remember { mutableFloatStateOf(0f) }
     val dragPusherY = remember { mutableFloatStateOf(0f) }
@@ -253,7 +253,7 @@ fun RenderGameScreen(
             levelProgress = levelProgress,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 0.dp),
+                .padding(all = 0.dp),
             onSolutionClick = { onSolutionClicked(stateFlowHolder, gameViewModel) },
             onRenderClick = { stateFlowHolder.renderStateFlow.setRenderer(currentRenderer.value.next()) },
             onZoomClick = {}, //Log.d("GameInput", "Zoom Clicked") },
@@ -262,7 +262,7 @@ fun RenderGameScreen(
             onLeftClickOffset = { setOffsetBy(stateFlowHolder, -1, 0) },
             onRightClickOffset = { setOffsetBy(stateFlowHolder, +1, 0) },
             onUpClickOffset = { setOffsetBy(stateFlowHolder, 0, -1) },
-            onCenterClickOffset = { resetOffset(stateFlowHolder, soundPoolPlayer) },
+            onCenterClickOffset = { resetOffset(stateFlowHolder) }, //, soundPoolPlayer) },
             onDownClickOffset = { setOffsetBy(stateFlowHolder, 0, +1) },
 
             onLeftClickSolution = {

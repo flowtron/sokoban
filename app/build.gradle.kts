@@ -20,13 +20,14 @@ android {
     // TODO: proper versioning .. for now we do it manually
     // manual versioning
     val versionBase = "1.0.0" // base version we are working on
-    val buildCounter = 8 // build counter
+    val buildCounter = 10 // build counter
 
     defaultConfig {
         applicationId = "de.flowtron.sokoban"
         minSdk = 34
+        //20260930: for upload into play store targetSdk 36 required
         //noinspection OldTargetApi
-        targetSdk = 35
+        targetSdk = 36
 
         versionCode = buildCounter
         versionName = "${versionBase}-alpha-${versionCode}" // e.g. "1.0.0-alpha-8"
