@@ -28,6 +28,9 @@ interface RoomLevelDao {
     @Query("SELECT * FROM level WHERE combo = :combo AND world = :world AND level = :level")
     suspend fun getLevelByPath(combo: String, world: String, level: String): RoomLevel?
 
+    @Query(value = "SELECT COUNT(*) FROM level")
+    suspend fun getLevelCount(): Int
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLevel(level: RoomLevel)
 

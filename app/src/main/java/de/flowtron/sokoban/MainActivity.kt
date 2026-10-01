@@ -1,5 +1,6 @@
 package de.flowtron.sokoban
 
+import android.content.res.AssetManager
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -22,6 +23,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import de.flowtron.sokoban.game.DocArticleProvider
 import de.flowtron.sokoban.game.LevelProgress
 import de.flowtron.sokoban.room.RoomHolder
 import de.flowtron.sokoban.state.StateFlowHolder
@@ -52,6 +54,12 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var levelProgress: LevelProgress
 
+    @Inject
+    lateinit var assetManager: AssetManager
+
+    @Inject
+    lateinit var docArticleProvider: DocArticleProvider
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -72,12 +80,14 @@ class MainActivity : ComponentActivity() {
                 SokobanTheme {
                     if (isConfigurationDoneState.value) {
                         MainAppView(
-                            applicationContext,
+                            //applicationContext,
                             toastHandler = mainAppViewModel.toastHandler,
                             levelsViewModel = levelsViewModel,
                             gameViewModel = gameViewModel,
                             stateFlowHolder = stateFlowHolder,
                             levelProgress = levelProgress,
+                            assetManager = assetManager,
+                            docArticleProvider = docArticleProvider,
                         )
                     } else {
                         if (isConfigurationDoneState.value) {

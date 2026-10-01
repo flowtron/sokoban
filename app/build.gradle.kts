@@ -20,22 +20,29 @@ android {
     // TODO: proper versioning .. for now we do it manually
     // manual versioning
     val versionBase = "1.0.0" // base version we are working on
-    val buildCounter = 10 // build counter
+    val buildCounter = 11 // build counter
 
     defaultConfig {
         applicationId = "de.flowtron.sokoban"
         minSdk = 34
-        //20260930: for upload into play store targetSdk 36 required
         //noinspection OldTargetApi
         targetSdk = 36
 
-        versionCode = buildCounter
-        versionName = "${versionBase}-alpha-${versionCode}" // e.g. "1.0.0-alpha-8"
+        val versionGateway = "beta"
+        val gatewayOffsets = mapOf(
+            "alpha" to 0,
+            "beta" to 10,
+        )
+        versionCode = buildCounter - gatewayOffsets.getOrDefault(versionGateway, 0) // code begins at 1 for each new range …
+        versionName = "${versionBase}-${versionGateway}-${versionCode}" // e.g. "12.2.34-epsilon-803"
 
         buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
-        buildConfigField("int", "VERSION_CODE", versionCode.toString())
-        buildConfigField("String", "BUILD_DATE", "\"${System.currentTimeMillis()}\"")
-        buildConfigField("String", "BUILD_TYPE", "\"DEVELOPMENT\"")
+
+        buildConfigField(   "int",  "BUILD_COUNT", buildCounter.toString())
+        buildConfigField("int", "VERSION_CODE", versionCode.toString()) // are we using this in a way that could lead to misinterpretations and/or problems?
+
+        buildConfigField("String",   "BUILD_DATE", "\"${System.currentTimeMillis()}\"")
+        buildConfigField("String",   "BUILD_TYPE", "\"DEVELOPMENT\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

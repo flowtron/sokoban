@@ -44,7 +44,7 @@ fun AppDetails(/*stateFlowHolder: StateFlowHolder*/) {
             )
             Text(
                 modifier = modifier,
-                text = "Version: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
+                text = "Version: ${BuildConfig.VERSION_NAME} (${BuildConfig.BUILD_COUNT})"
             )
             Text(
                 modifier = modifier,

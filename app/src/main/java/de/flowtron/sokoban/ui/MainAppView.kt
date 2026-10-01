@@ -1,6 +1,6 @@
 package de.flowtron.sokoban.ui // Or your preferred package
 
-import android.content.Context
+import android.content.res.AssetManager
 import android.util.Log
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
@@ -33,14 +33,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import de.flowtron.sokoban.AppDestinations.GAME_ROUTE
-import de.flowtron.sokoban.AppDestinations.LEVELS_ROUTE
-import de.flowtron.sokoban.AppDestinations.SETTINGS_ROUTE
-//import de.flowtron.sokoban.audio.SoundPoolPlayer
+import de.flowtron.sokoban.AppDestinations.ROUTE_GAME
+import de.flowtron.sokoban.AppDestinations.ROUTE_HELP
+import de.flowtron.sokoban.AppDestinations.ROUTE_LEVELS
+import de.flowtron.sokoban.AppDestinations.ROUTE_SETTINGS
+import de.flowtron.sokoban.game.DocArticleProvider
 import de.flowtron.sokoban.game.LevelProgress
 import de.flowtron.sokoban.state.StateFlowHolder
 import de.flowtron.sokoban.ui.models.GameViewModel
 import de.flowtron.sokoban.ui.models.LevelsViewModel
+import de.flowtron.sokoban.ui.screens.DocArticle
+import de.flowtron.sokoban.ui.screens.DocScreen
 import de.flowtron.sokoban.ui.screens.GameScreen
 import de.flowtron.sokoban.ui.screens.LevelsScreen
 import de.flowtron.sokoban.ui.screens.SettingsScreen
@@ -54,13 +57,14 @@ data class BottomNavItem(
 
 @Composable
 fun MainAppView(
-    context: Context,
+    //context: Context,
     toastHandler: ToastHandler,
     levelsViewModel: LevelsViewModel,
     gameViewModel: GameViewModel,
     stateFlowHolder: StateFlowHolder,
     levelProgress: LevelProgress,
-//    soundPoolPlayer: SoundPoolPlayer,
+    assetManager: AssetManager,
+    docArticleProvider: DocArticleProvider,
 ) {
     val navController = rememberNavController()
 
@@ -85,22 +89,22 @@ fun MainAppView(
 //    }
 
     // FYI: the enabled boolean we had here is now dealt with in the logic
-    // only the gameRoute is going to be toggled and the criteria is clear cut
+    // only the gameRoute is going to be toggled and the criteria is clear-cut
     val navItems = listOf(
         BottomNavItem(
             label = "Levels",
             icon = Icons.Filled.FileOpen,
-            route = LEVELS_ROUTE,
+            route = ROUTE_LEVELS,
         ),
         BottomNavItem(
             label = "Settings",
             icon = Icons.Filled.Settings,
-            route = SETTINGS_ROUTE,
+            route = ROUTE_SETTINGS,
         ),
         BottomNavItem(
             label = "Game",
             icon = Icons.Filled.Gamepad,
-            route = GAME_ROUTE,
+            route = ROUTE_GAME,
         )
     )
 
@@ -117,28 +121,36 @@ fun MainAppView(
                         currentDestination,
                         navController,
                         toastHandler,
-                        //context
                     )
                 }
             }
         }
     ) { innerPadding ->
+        // >> INITIAL DESTINATION:
+        val gotoAtStart = ROUTE_HELP
+        // - ROUTE_LEVELS
+        // - ROUTE_HELP
+        // <<
+
         NavHost(
             navController = navController,
-            startDestination = LEVELS_ROUTE,
+            startDestination = gotoAtStart,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(route = LEVELS_ROUTE) {
+            composable(route = ROUTE_LEVELS) {
                 LevelsScreen(
                     levelsViewModel,
                     stateFlowHolder,
                     navController
                 )
             }
-            composable(route = SETTINGS_ROUTE) { SettingsScreen(stateFlowHolder = stateFlowHolder) }
-            composable(route = GAME_ROUTE) { AlwaysNeedSelectedLevel(toastHandler, navController) } // maybe not needed, self evident toast and renavigate!
+            composable(route = ROUTE_SETTINGS) { SettingsScreen(stateFlowHolder = stateFlowHolder) }
+            composable(route = ROUTE_GAME) {
+                // maybe not needed, self-evident toast and renavigate! // toastHandler,
+                AlwaysNeedSelectedLevel(navController)
+            }
             composable(
-                route = "${GAME_ROUTE}/{levelId}",
+                route = "${ROUTE_GAME}/{levelId}",
                 arguments = listOf(navArgument("levelId") { type = NavType.LongType })
             ) { backstackEntry ->
                 ShowGameScreen(
@@ -147,9 +159,41 @@ fun MainAppView(
                     stateFlowHolder,
                     levelProgress,
                     toastHandler,
-                    context,
                     navController
                 )
+            }
+            composable(
+                route = "${ROUTE_HELP}/{articleLang}/{articleName}",
+                arguments = listOf(
+                    navArgument("articleLang") { type = NavType.StringType },
+                    navArgument("articleName") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                Log.d("MainAppView", "backStackEntry{ ${backStackEntry.destination} | ${backStackEntry.arguments} }")
+
+                val articleLang = backStackEntry.arguments?.getString("articleLang") ?: "en"
+                val articleName = backStackEntry.arguments?.getString("articleName") ?: DocArticleProvider.DOC_FAILSAFE
+                Log.d("MainAppView", "composing HELP:$articleLang:$articleName …")
+
+                ShowDocArticleScreen(backStackEntry, assetManager,docArticleProvider)
+            }
+            composable(
+                route = ROUTE_HELP
+            ) { backStackEntry ->
+                Log.d("MainAppView", "backStackEntry{ ${backStackEntry.destination} | ${backStackEntry.arguments} }")
+
+                DocScreen(docArticleProvider, Modifier, navController)
+            }
+
+            // fail-safe fallback – MUST BE last
+            composable("{*path}") {
+                //LevelsScreen(levelsViewModel,stateFlowHolder,navController)
+                //DocScreen(docArticleProvider)
+                navController.navigate(ROUTE_HELP) {
+                    //popUpTo(navController.graph.findStartDestination().id) { inclusive = true } // in question
+                    launchSingleTop = true
+                    restoreState = true
+                }
             }
         }
     }
@@ -162,7 +206,7 @@ private fun ShowGameScreen(
     stateFlowHolder: StateFlowHolder,
     levelProgress: LevelProgress,
     toastHandler: ToastHandler,
-    context: Context,
+    //context: Context,
     navController: NavHostController
 ) {
     val passedLevelId = backstackEntry.arguments?.getLong("levelId")
@@ -176,20 +220,32 @@ private fun ShowGameScreen(
             levelProgress = levelProgress,
         ) // levelId = passedLevelId,
     } else {
-        LaunchNavigateToLevelsScreen(toastHandler, context, navController)
+        LaunchNavigateToLevelsScreen(toastHandler, /*context, */navController)
     }
+}
+
+@Composable
+private fun ShowDocArticleScreen(
+    backstackEntry: NavBackStackEntry,
+    assetManager: AssetManager,
+    docArticleProvider: DocArticleProvider,
+) {
+    val passedArticleLang = backstackEntry.arguments?.getString("articleLang") ?: "en"
+    val passedArticleName = backstackEntry.arguments?.getString("articleName") ?: DocArticleProvider.DOC_FAILSAFE
+    val articleText = docArticleProvider.getArticle (assetManager, name = passedArticleName, lang = passedArticleLang)
+    DocArticle(articleText)
 }
 
 @Composable
 private fun LaunchNavigateToLevelsScreen(
     toastHandler: ToastHandler,
-    context: Context,
+    //context: Context,
     navController: NavHostController
 ) {
-    Log.e("MainAppView", "LevelId is null even with argument, redirecting.")
+    //Log.e("MainAppView", "LevelId is null even with argument, redirecting.")
     LaunchedEffect(Unit) {
         toastHandler.showToast("Error: Level ID missing. Please select a level.")
-        navController.navigate(LEVELS_ROUTE) {
+        navController.navigate(ROUTE_LEVELS) {
             popUpTo(navController.graph.findStartDestination().id) {
                 inclusive = true
             } // in question
@@ -201,22 +257,22 @@ private fun LaunchNavigateToLevelsScreen(
 
 @Composable
 private fun AlwaysNeedSelectedLevel(
-    toastHandler: ToastHandler,
+    //toastHandler: ToastHandler,
     navController: NavHostController
 ) {
     LaunchedEffect(Unit) {
-        Log.d("MainAppView", "GameScreen without a LevelId --> pick a level")
-        toastHandler.showToast("You need to pick a level")
-        navController.navigate(LEVELS_ROUTE) {
+//        Log.d("MainAppView", "GameScreen without a LevelId --> pick a level")
+//        toastHandler.showToast("You need to pick a level")
+        navController.navigate(ROUTE_LEVELS) {
             popUpTo(navController.graph.findStartDestination().id) {
                 inclusive = true
-            } // remove GAME_ROUTE from backstack // avoid loop if back is pressed
+            } // remove ROUTE_GAME from backstack // avoid loop if back is pressed
 
             launchSingleTop = true
             restoreState = true
         }
     }
-    Text("redirecting to select a level") // briefly shown
+    //Text("redirecting to select a level") // briefly shown
 }
 
 @Composable
@@ -228,7 +284,7 @@ private fun RowScope.OneNavigationBarItem(
     toastHandler: ToastHandler,
     //context: Context
 ) {
-    val isGameRoute = item.route == GAME_ROUTE
+    val isGameRoute = item.route == ROUTE_GAME
     val isEnabled = if (isGameRoute) selectedLevel != null else true
 
     NavigationBarItem(
@@ -261,7 +317,7 @@ private fun onNavItemClick(
 ): () -> Unit = {
     if (isEnabled) {
         val usableRoute = if (isGameRoute && selectedLevel !== null) {
-            "${GAME_ROUTE}/$selectedLevel"
+            "${ROUTE_GAME}/$selectedLevel"
         } else {
             item.route
         }
@@ -276,19 +332,6 @@ private fun onNavItemClick(
         toastHandler.showToast("Please first select a level.")
     }
 }
-/*navController.navigate(item.route) {
-                                // Pop up to the start destination of the graph to
-                                // avoid building up a large stack of destinations
-                                // on the back stack as users select items
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                // Avoid multiple copies of the same destination when
-                                // reselecting the same item
-                                launchSingleTop = true
-                                // Restore state when reselecting a previously selected item
-                                restoreState = true
-                            }*/
 
 @Composable
 private fun isSelectedNavDestination(
@@ -299,8 +342,8 @@ private fun isSelectedNavDestination(
 ): Boolean = currentDestination?.hierarchy?.any { navDest ->
     val currentRoute = navDest.route
     if (isGameRoute) {
-        currentRoute == GAME_ROUTE ||
-                currentRoute == "${GAME_ROUTE}/${selectedLevel}"
+        currentRoute == ROUTE_GAME ||
+                currentRoute == "${ROUTE_GAME}/${selectedLevel}"
     } else {
         currentRoute == item.route
     }

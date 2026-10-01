@@ -36,7 +36,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
-import de.flowtron.sokoban.AppDestinations.GAME_ROUTE
+import de.flowtron.sokoban.AppDestinations.ROUTE_GAME
 import de.flowtron.sokoban.R
 import de.flowtron.sokoban.room.RoomLevel
 import de.flowtron.sokoban.state.GameDataInfo
@@ -314,7 +314,7 @@ fun levelButtonClick(level: RoomLevel, combo: String, world: String, levelsViewM
     } else {
         stateFlowHolder.coordinatesStateFlow.setCoordinates(null)
 
-        navController.navigate("$GAME_ROUTE/${requestedGameDataInfo.id}") {
+        navController.navigate("$ROUTE_GAME/${requestedGameDataInfo.id}") {
             popUpTo(navController.graph.findStartDestination().id) {
                 inclusive = true
             } // in question

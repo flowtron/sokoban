@@ -1,8 +1,10 @@
 package de.flowtron.sokoban
 
 object AppDestinations {
-    const val SETUP_ROUTE = "?"
-    const val SETTINGS_ROUTE = "settings"
-    const val LEVELS_ROUTE = "levels"
-    const val GAME_ROUTE = "game"
+    const val ROUTE_SETUP = "?" // NULL => …
+    const val ROUTE_SETTINGS = "settings" // /settings
+    const val ROUTE_LEVELS = "levels" // /levels/COMBO/WORLD
+    const val ROUTE_GAME = "game" // /game
+
+    const val ROUTE_HELP = "help" // /help/ARTICLE
 }

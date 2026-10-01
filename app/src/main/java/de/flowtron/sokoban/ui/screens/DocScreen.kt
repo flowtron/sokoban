@@ -1,5 +1,6 @@
 package de.flowtron.sokoban.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,21 +22,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-
-/*fun getAllArticles() : List<String> {
-    val assetReader = AssetReader(context)
-    //val result: MutableMap<String, MutableMap<String, List<String>>> = mutableMapOf()
-    val articles = assetReader.listSubdirectories(DOC_ASSET_DIR)
-    return articles
-}*/
-
-//docArticleProvider: DocArticleProvider,
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.rememberNavController
+import de.flowtron.sokoban.AppDestinations.ROUTE_HELP
+import de.flowtron.sokoban.game.DocArticleProvider
 
 @Composable
 fun DocScreen(
+    docArticleProvider: DocArticleProvider?,
     articles: List<String>,
     modifier: Modifier = Modifier,
+    navController: androidx.navigation.NavHostController = rememberNavController(),
 ) {
     /*
     if(articles.isEmpty()){
@@ -76,25 +74,52 @@ fun DocScreen(
                                 vertical = 12.dp
                             )
                     ) {
-                        Text(
-                            text = articleTitle,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Left,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
+                        Column() {
+                            Button(
+                                onClick = {
+                                    Log.d("DocScreen", "clicked on '$articleTitle'")
+                                    //DocArticle(articleTitle)
+                                    /* */
+                                    val articleLang = "de"
+                                    navController.navigate("$ROUTE_HELP/${articleLang}/${articleTitle}") {
+                                        //popUpTo(navController.graph.findStartDestination().id) { inclusive = true } // in question
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
 
-                        val isFinalArticle = idx == articles.lastIndex
-                        val theHeight = if(isFinalArticle){ 16.dp }else{ 8.dp }
-                        val modWithHeight = modifier.height(theHeight)
-                        Spacer(modifier = modWithHeight)
+                                     /**/
+                                }
+                            ) {
+                                Text(
+                                    text = articleTitle,
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    textAlign = TextAlign.Left,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+
+                            val isFinalArticle = idx == articles.lastIndex
+                            val theHeight = if(isFinalArticle){ 16.dp }else{ 8.dp }
+                            val modWithHeight = modifier.height(theHeight)
+                            Spacer(modifier = modWithHeight)
+                        }
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+fun DocScreen(
+    docArticleProvider: DocArticleProvider,
+    modifier: Modifier = Modifier,
+    navController: androidx.navigation.NavHostController = rememberNavController(),
+) {
+    DocScreen(docArticleProvider, docArticleProvider.getAllArticles(), modifier, navController)
 }
 
 @Preview(showBackground = true)
@@ -118,7 +143,9 @@ fun DocScreenPreview() {
         "1",
     )
     DocScreen(
+        docArticleProvider = null,//DocArticleProvider(),
         articles = previewArticles,
-        modifier = Modifier // Modifier.fillMaxWidth()
+        modifier = Modifier, // Modifier.fillMaxWidth()
+        //navController = NavController(ApplicationContext),
     )
 }
