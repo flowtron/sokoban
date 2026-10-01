@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sokoban</string>
+    <string name="app_is_configured">App ist konfiguriert.</string>
+    <string name="app_is_initialising">App wird initialisiert …</string>
+</resources>

@@ -95,6 +95,9 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.lifecycle.livedata.ktx)
 
+    implementation(libs.mpMarkdown)
+    implementation(libs.mpMarkdownM3)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

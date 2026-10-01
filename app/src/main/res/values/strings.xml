@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Sokoban</string>
+    <string name="app_is_configured">App is configured.</string>
+    <string name="app_is_initialising">App is initialising …</string>
 </resources>

@@ -13,12 +13,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -60,23 +62,33 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var docArticleProvider: DocArticleProvider
 
+    //const
+    //val sAppIsConfigured = gameViewModel. //stringResource(R.string.app_is_configured)
+    //const val sAppIsInitialising = stringResource(R.string.app_is_initialising)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         lifecycleScope.launch {
             setContent {
                 val mainAppViewModel: MainAppViewModel = hiltViewModel()
+
                 val isConfigurationDoneState =
                     stateFlowHolder.configurationDoneStateFlow.done.collectAsStateWithLifecycle()
-                var loadingScreenText by remember {
-                    mutableStateOf(
+
+                var loadingScreenTextId by remember {
+                    mutableIntStateOf(
                         if (isConfigurationDoneState.value) {
-                            "App is configured."
+                            R.string.app_is_configured
                         } else {
-                            "App is initialising …"
+                            R.string.app_is_initialising
                         }
                     )
                 }
+                val loadingScreenTextValue = stringResource(loadingScreenTextId)
+
+                var updatedLine2 by remember { mutableStateOf("") }
+
                 SokobanTheme {
                     if (isConfigurationDoneState.value) {
                         MainAppView(
@@ -116,12 +128,22 @@ class MainActivity : ComponentActivity() {
                                 //kotlinx.coroutines.delay(MINIMUM_INITIALISATION_SHOW_MILLIS.milliseconds)
                                 //Log.i("MainActivity", "SoundPoolPlayer is ${if(soundPoolPlayer==null){"null"}else{"ready"}}")
 
-                                roomHolder.markSetupAsDone()
-                                stateFlowHolder.configurationDoneStateFlow.setDone(true)
+                                Log.i("MainActivity", "STRING CHANGED")
+                                loadingScreenTextId = R.string.app_is_configured
 
-                                loadingScreenText = "App is now configured."
+                                //loadingScreenText = "App is now configured."
+                                //loadingScreenTextId = R.string.app_is_configured
+                            }
+                            // DEBUG added delay, to see the changed text
+                            LaunchedEffect(Unit){
+                                Log.i("MainActivity", "another wait")
+
+                                val longer = MINIMUM_INITIALISATION_SHOW_MILLIS.milliseconds * 1.25
+                                kotlinx.coroutines.delay(longer)
 
                                 Log.i("MainActivity", "App is now configured.")
+                                roomHolder.markSetupAsDone()
+                                stateFlowHolder.configurationDoneStateFlow.setDone(true)
                             }
                         }
 
@@ -136,7 +158,9 @@ class MainActivity : ComponentActivity() {
                         // You can only push, not pull boxes. The boxes and goals are all the same. Least pushes, then moves wins in comparison.
 
                         // on my screen the URL text was smushed on the right edge
+                        //var updatedLine2 = ""
                         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                            val useForLine2 = updatedLine2.ifEmpty { loadingScreenTextValue }
                             InfoScreenWithLogo(
                                 modifier = Modifier
                                     .padding(innerPadding)
@@ -145,12 +169,11 @@ class MainActivity : ComponentActivity() {
                                 line1Text = "flowtron provides",
                                 line2Text = "S O K O B A N",
                                 multilineText1 = thanksText,
-                                multilineText2 = loadingScreenText,
+                                multilineText2 = useForLine2,
                                 copyrightText = "©2025-2026 Florian 'flowtron' Schulte",
                                 urlText = "flowtron.de",
-                                onMultilineTextChange = { newText ->
-                                    loadingScreenText = newText
-                                }
+                                //onMultilineTextChange = { newText ->loadingScreenTextValue = newText }
+                                onMultilineTextChange = { newText -> updatedLine2 = newText }
                             )
                         }
                     }
