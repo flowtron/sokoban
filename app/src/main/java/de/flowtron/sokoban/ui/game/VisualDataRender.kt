@@ -1,6 +1,5 @@
 package de.flowtron.sokoban.ui.game
 
-import android.R
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -24,7 +23,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.flowtron.sokoban.game.Cell
 import de.flowtron.sokoban.game.isPlayer
 import de.flowtron.sokoban.safeLaunch
-import de.flowtron.sokoban.state.Renderer
 import de.flowtron.sokoban.state.Renderer.BOTH
 import de.flowtron.sokoban.state.Renderer.DRAW
 import de.flowtron.sokoban.state.Renderer.TEXT1
@@ -125,14 +123,6 @@ fun VisualDataRender(stateFlowHolder: StateFlowHolder, gameViewModel: GameViewMo
                                                 cellIndex
                                             )
                                             TEXT2 -> Text(cellStyle2)
-                                            /*CellAsText(
-                                                Cell(id=-1,char=cellStyle2.at(0),drawable=-1,label=""),
-                                                tileSize,
-                                                innerCoordinates,
-                                                rowIndex,
-                                                cellIndex
-                                            )*/
-
                                             BOTH -> {
                                                 if (cellCell.isPlayer()) {
                                                     DrawMapTileFromId(cellCell.id, tileSize)

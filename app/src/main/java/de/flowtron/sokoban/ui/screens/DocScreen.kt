@@ -1,5 +1,6 @@
 package de.flowtron.sokoban.ui.screens
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -22,7 +23,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
 import de.flowtron.sokoban.AppDestinations.ROUTE_HELP
 import de.flowtron.sokoban.R
@@ -30,7 +30,9 @@ import de.flowtron.sokoban.game.DocArticleProvider
 
 @Composable
 fun DocScreen(
+    //context: Context,
     docArticleProvider: DocArticleProvider?,
+    languageCode: String,
     articles: List<String>,
     modifier: Modifier = Modifier,
     navController: androidx.navigation.NavHostController = rememberNavController(),
@@ -81,10 +83,8 @@ fun DocScreen(
                             Button(
                                 onClick = {
                                     Log.d("DocScreen", "clicked on '$articleTitle'")
-                                    //DocArticle(articleTitle)
-                                    /* */
-                                    val articleLang = "de" // FIXME – what is the current lang .. did we not establish that already somewhere??
-                                    navController.navigate("$ROUTE_HELP/${articleLang}/${articleTitle}") {
+
+                                    navController.navigate("$ROUTE_HELP/${languageCode}/${articleTitle}") {
                                         //popUpTo(navController.graph.findStartDestination().id) { inclusive = true } // in question
                                         launchSingleTop = true
                                         restoreState = true
@@ -119,10 +119,11 @@ fun DocScreen(
 @Composable
 fun DocScreen(
     docArticleProvider: DocArticleProvider,
+    languageCode: String,
     modifier: Modifier = Modifier,
     navController: androidx.navigation.NavHostController = rememberNavController(),
 ) {
-    DocScreen(docArticleProvider, docArticleProvider.getAllArticles(), modifier, navController)
+    DocScreen(docArticleProvider, languageCode, docArticleProvider.getAllArticles(), modifier, navController)
 }
 
 @Preview(showBackground = true)
@@ -147,6 +148,7 @@ fun DocScreenPreview() {
     )
     DocScreen(
         docArticleProvider = null,//DocArticleProvider(),
+        languageCode = "en", //"fa" of "fa_KE"
         articles = previewArticles,
         modifier = Modifier, // Modifier.fillMaxWidth()
         //navController = NavController(ApplicationContext),

@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination
@@ -182,7 +183,8 @@ fun MainAppView(
             ) { backStackEntry ->
                 Log.d("MainAppView", "backStackEntry{ ${backStackEntry.destination} | ${backStackEntry.arguments} }")
 
-                DocScreen(docArticleProvider, Modifier, navController)
+                val languageCode = LocaleListCompat.getDefault()[0]?.language ?: "en"
+                DocScreen(/*context,*/ docArticleProvider, languageCode, Modifier, navController)
             }
 
             // fail-safe fallback – MUST BE last
