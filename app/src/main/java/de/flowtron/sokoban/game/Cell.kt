@@ -18,6 +18,19 @@ enum class Cell(val id: Int, val char: Char = ' ', val drawable: Int, val label:
 
     companion object {
         fun fromId(id: Int): Cell? = entries.find { it.id == id }
+        fun style2(id: Int): String {
+            return when(id) {
+                1 -> "▒"
+                2 -> "🗿"
+                3 -> "🗿"
+                4 -> "🔳"
+                5 -> "🔶"
+                6 -> "🔷"
+                7 -> "▓"
+                else -> "░"
+                // more: ▒▓🔲
+            }
+        }
 
         fun labelById(id: Int): String {
             val cell = fromId(id)

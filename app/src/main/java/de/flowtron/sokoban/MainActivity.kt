@@ -62,9 +62,6 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var docArticleProvider: DocArticleProvider
 
-    //const
-    //val sAppIsConfigured = gameViewModel. //stringResource(R.string.app_is_configured)
-    //const val sAppIsInitialising = stringResource(R.string.app_is_initialising)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -92,7 +89,6 @@ class MainActivity : ComponentActivity() {
                 SokobanTheme {
                     if (isConfigurationDoneState.value) {
                         MainAppView(
-                            //applicationContext,
                             toastHandler = mainAppViewModel.toastHandler,
                             levelsViewModel = levelsViewModel,
                             gameViewModel = gameViewModel,
@@ -103,36 +99,23 @@ class MainActivity : ComponentActivity() {
                         )
                     } else {
                         if (isConfigurationDoneState.value) {
-                            Log.i(
-                                "MainActivity",
-                                "App is configured."
-                            )
+                            Log.i("MainActivity", "App is configured.")
                             applyConfiguration()
                             NavigateToGameScreen(gameViewModel = gameViewModel)
                         } else {
                             LaunchedEffect(Unit) {
-                                Log.i(
-                                    "MainActivity",
-                                    "Waiting for ${(MINIMUM_INITIALISATION_SHOW_MILLIS / 100.0f).toInt() / 10.0f} seconds…"
-                                )
+                                val initSeconds = (MINIMUM_INITIALISATION_SHOW_MILLIS / 100.0f).toInt() / 10.0f
+                                Log.i("MainActivity","Waiting for $initSeconds seconds…")
                                 kotlinx.coroutines.delay(MINIMUM_INITIALISATION_SHOW_MILLIS.milliseconds)
 
                                 applyConfiguration()
-
-                                /*// deprecated in JAVA
-                                Log.i("MainActivity", "Initialising the SOUNDPOOLPLAYER")
-                                soundPoolPlayer.initialise(applicationContext)*/
-
-                                //val allowDelaySoundPoolPlayerInitialisation = (1_500L).milliseconds
-                                //FIXME: soundPool may require some time for loading the sound
                                 //kotlinx.coroutines.delay(MINIMUM_INITIALISATION_SHOW_MILLIS.milliseconds)
-                                //Log.i("MainActivity", "SoundPoolPlayer is ${if(soundPoolPlayer==null){"null"}else{"ready"}}")
 
                                 Log.i("MainActivity", "STRING CHANGED")
                                 loadingScreenTextId = R.string.app_is_configured
-
-                                //loadingScreenText = "App is now configured."
-                                //loadingScreenTextId = R.string.app_is_configured
+                                // do NOT change
+                                // - roomHolder setup
+                                // - stateFlow config
                             }
                             // DEBUG added delay, to see the changed text
                             LaunchedEffect(Unit){
@@ -148,9 +131,10 @@ class MainActivity : ComponentActivity() {
                         }
 
                         val thanksText = """
-                            Enjoy the game! 
-                                                                        
-                            🫶 for BaZi, Fritz and all you others 😃
+                        🫶 Enjoy The Game!
+                        @ BaZi
+                        @ Fritz
+                          😃
                         """.trimIndent()
 
                         // FIXME
@@ -199,7 +183,5 @@ class MainActivity : ComponentActivity() {
             stateFlowHolder.dragSensitivityStateFlow.setDragSensitivity(config.dragSensitivity)
             Log.d("MainActivity", "select level too? : ${config.lastLevelId}")
         }
-
-
     }
 }

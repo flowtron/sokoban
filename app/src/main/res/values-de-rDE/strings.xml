@@ -3,4 +3,5 @@
     <string name="app_name">Sokoban</string>
     <string name="app_is_configured">App ist konfiguriert.</string>
     <string name="app_is_initialising">App wird initialisiert …</string>
+    <string name="doc_articles_title">Hilfe zu Sokoban</string>
 </resources>

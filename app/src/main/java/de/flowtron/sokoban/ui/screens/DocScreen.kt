@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
 import de.flowtron.sokoban.AppDestinations.ROUTE_HELP
+import de.flowtron.sokoban.R
 import de.flowtron.sokoban.game.DocArticleProvider
 
 @Composable
@@ -51,6 +52,8 @@ fun DocScreen(
                 .padding(0.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = R.string.doc_articles_title.toString(), fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
             articles.forEachIndexed { idx, articleTitle ->
                 Box(
@@ -80,7 +83,7 @@ fun DocScreen(
                                     Log.d("DocScreen", "clicked on '$articleTitle'")
                                     //DocArticle(articleTitle)
                                     /* */
-                                    val articleLang = "de"
+                                    val articleLang = "de" // FIXME – what is the current lang .. did we not establish that already somewhere??
                                     navController.navigate("$ROUTE_HELP/${articleLang}/${articleTitle}") {
                                         //popUpTo(navController.graph.findStartDestination().id) { inclusive = true } // in question
                                         launchSingleTop = true

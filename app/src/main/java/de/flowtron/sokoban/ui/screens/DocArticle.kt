@@ -17,16 +17,6 @@ fun DocArticle(itemText: String, modifier: Modifier = Modifier) {
     }
     Text(" ")
 }
-/*
-@Composable
-fun MarkdownText(
-    content: String,
-    modifier: Modifier = Modifier
-) {
-
-}
- */
-
 
 @Preview(showBackground = true)
 @Composable

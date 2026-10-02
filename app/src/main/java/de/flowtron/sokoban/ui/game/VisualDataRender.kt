@@ -1,6 +1,6 @@
 package de.flowtron.sokoban.ui.game
 
-import android.annotation.SuppressLint
+import android.R
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -24,9 +24,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.flowtron.sokoban.game.Cell
 import de.flowtron.sokoban.game.isPlayer
 import de.flowtron.sokoban.safeLaunch
+import de.flowtron.sokoban.state.Renderer
 import de.flowtron.sokoban.state.Renderer.BOTH
 import de.flowtron.sokoban.state.Renderer.DRAW
-import de.flowtron.sokoban.state.Renderer.TEXT
+import de.flowtron.sokoban.state.Renderer.TEXT1
+import de.flowtron.sokoban.state.Renderer.TEXT2
 import de.flowtron.sokoban.state.StateFlowHolder
 import de.flowtron.sokoban.ui.models.GameViewModel
 
@@ -112,15 +114,24 @@ fun VisualDataRender(stateFlowHolder: StateFlowHolder, gameViewModel: GameViewMo
                                 row.forEachIndexed { cellIndex, cell ->
                                     if (cellIndex in xRange) {
                                         val cellCell = requireNotNull(Cell.fromId(cell.toInt()))
+                                        val cellStyle2 = requireNotNull(Cell.style2(cell.toInt()))
                                         when (currentRenderer) {
                                             DRAW -> DrawMapTileFromId(cellCell.id, tileSize)
-                                            TEXT -> CellAsText(
+                                            TEXT1 -> CellAsText(
                                                 cellCell,
                                                 tileSize,
                                                 innerCoordinates,
                                                 rowIndex,
                                                 cellIndex
                                             )
+                                            TEXT2 -> Text(cellStyle2)
+                                            /*CellAsText(
+                                                Cell(id=-1,char=cellStyle2.at(0),drawable=-1,label=""),
+                                                tileSize,
+                                                innerCoordinates,
+                                                rowIndex,
+                                                cellIndex
+                                            )*/
 
                                             BOTH -> {
                                                 if (cellCell.isPlayer()) {

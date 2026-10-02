@@ -2,7 +2,8 @@ package de.flowtron.sokoban.state
 
 enum class Renderer {
     DRAW,
-    TEXT,
+    TEXT1,
+    TEXT2,
     BOTH
 }
 
