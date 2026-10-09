@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -176,7 +177,7 @@ fun MainAppView(
                 val articleName = backStackEntry.arguments?.getString("articleName") ?: DocArticleProvider.DOC_FAILSAFE
                 Log.d("MainAppView", "composing HELP:$articleLang:$articleName …")
 
-                ShowDocArticleScreen(backStackEntry, assetManager,docArticleProvider)
+                ShowDocArticleScreen(backStackEntry, assetManager, docArticleProvider, navController)
             }
             composable(
                 route = ROUTE_HELP
@@ -231,11 +232,12 @@ private fun ShowDocArticleScreen(
     backstackEntry: NavBackStackEntry,
     assetManager: AssetManager,
     docArticleProvider: DocArticleProvider,
+    navController: NavController,
 ) {
     val passedArticleLang = backstackEntry.arguments?.getString("articleLang") ?: "en"
     val passedArticleName = backstackEntry.arguments?.getString("articleName") ?: DocArticleProvider.DOC_FAILSAFE
     val articleText = docArticleProvider.getArticle (assetManager, name = passedArticleName, lang = passedArticleLang)
-    DocArticle(articleText)
+    DocArticle( markdownContent = articleText, language = passedArticleLang, navController = navController)
 }
 
 @Composable

@@ -5,6 +5,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -94,13 +95,6 @@ fun LevelInfoList(
     navController: androidx.navigation.NavHostController = rememberNavController()
 ) {
     val providerBG: Color = colorResource(id = R.color.comboProviderBG)
-    // TODO: find out how much modifier.width can fit on THIS screen
-    val cSize = LocalWindowInfo.current.containerSize
-//    val configuration = LocalConfiguration.current
-//    val screenHeight = configuration.screenHeightDp.dp
-//    val screenWidth = configuration.screenWidthDp.dp
-    //cSize.width /
-    val buttonsPerRow = cSize.width / 256 //5 //3
     Column(
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
@@ -111,7 +105,7 @@ fun LevelInfoList(
             worlds.groupBy { it.world }.forEach { (world, levels) ->
                 requireNotNull(world)
                 WorldHeader(combo, world, stateFlowHolder, levels)
-                WorldColumn(levels, buttonsPerRow, combo, world, levelsViewModel, stateFlowHolder, navController)
+                WorldColumn(levels, combo, world, levelsViewModel, stateFlowHolder, navController)
             }
         }
     }
@@ -234,59 +228,56 @@ fun WorldHeader(combo: String, world: String, stateFlowHolder: StateFlowHolder, 
 }
 
 @Composable
-fun WorldColumn(levels: List<RoomLevel>, buttonsPerRow: Int, combo: String, world: String, levelsViewModel: LevelsViewModel, stateFlowHolder: StateFlowHolder, navController: androidx.navigation.NavHostController) {
+fun getLevelBorderStroke(level: RoomLevel): BorderStroke? {
+    return if(level.help) {
+        BorderStroke(2.dp, colorResource(id = R.color.levelUsedSolution))
+    }else{
+        null
+    }
+}
+
+@Composable
+fun getLevelBackgroundColor(level: RoomLevel): Color {
+    return if(level.done) {
+        colorResource(id = R.color.levelFinishedBG)
+    }else{
+        colorResource(id = R.color.levelFreshBG)
+    }
+}
+
+@Composable
+fun WorldColumn(levels: List<RoomLevel>, combo: String, world: String, levelsViewModel: LevelsViewModel, stateFlowHolder: StateFlowHolder, navController: androidx.navigation.NavHostController ) {
     val currentHierarchyStateFlow = stateFlowHolder.levelHierarchyStateFlow.hierarchy.collectAsStateWithLifecycle()
     val currentHierarchy = currentHierarchyStateFlow.value
-    if(currentHierarchy.first == combo && currentHierarchy.second == world){
-        Column(
-            verticalArrangement = Arrangement.SpaceEvenly
-        ){
-            val rows = (levels.size + buttonsPerRow - 1) / buttonsPerRow
-            for (row in 0 until rows) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    for (col in 0 until buttonsPerRow) {
-                        val buttonIndex = row * buttonsPerRow + col
-
-                        if (buttonIndex < levels.size) {
-                            val level = levels[buttonIndex]
-                            val border = if(level.help) {
-                                BorderStroke(2.dp, colorResource(id = R.color.levelUsedSolution))
-                            }else{
-                                null
-                            }
-                            val backgroundColor = if(level.done) {
-                                colorResource(id = R.color.levelFinishedBG)
-                            }else{
-                                colorResource(id = R.color.levelFreshBG)
-                            }
-                            Button(
-                                border = border,
-                                shape = CutCornerShape(4.dp), // RoundedCornerShape(20.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = backgroundColor,
-                                ),
-                                onClick = {
-                                    requireNotNull(combo)
-                                    requireNotNull(world)
-                                    levelButtonClick(level, combo, world, levelsViewModel, stateFlowHolder, navController)
-                                } ) {
-                                Text(text = "${level.level?.format("%03d")}") // FIXME: this is not guaranteed, is it – should be a possibly alpha-numeric filename.
-                            }
-                        }
+    if(currentHierarchy.first == combo && currentHierarchy.second == world) {
+        FlowRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(2.dp),
+            horizontalArrangement = Arrangement.SpaceBetween, // spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            levels.forEach { level ->
+                Button(
+                    border = getLevelBorderStroke(level),
+                    shape = CutCornerShape(4.dp), // RoundedCornerShape(20.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = getLevelBackgroundColor(level),
+                    ),
+                    onClick = {
+                        levelButtonClick(
+                            level,
+                            combo,
+                            world,
+                            levelsViewModel,
+                            stateFlowHolder,
+                            navController
+                        )
                     }
+                ) {
+                    Text(text = "${level.level?.format("%03d")}") // FIXME: this is not guaranteed, is it – should be a possibly alpha-numeric filename.
                 }
             }
-
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 8.dp),
-                thickness = DividerDefaults.Thickness,
-                color = DividerDefaults.color
-            )
         }
     }
 }
