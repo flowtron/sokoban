@@ -113,8 +113,8 @@ class LevelProgress @Inject constructor(
      * Anyway: if the above is still relevant we need to find the proper map and history to check
      *
      */
-    fun performHistory(map: LevelData, moves: MovementHistory): LevelData {
-        var from = requireNotNull(map.findPlayer())
+    fun performHistory(map: LevelData, moves: MovementHistory, from: Coordinates? = null): LevelData {
+        var from = from ?: requireNotNull(map.findPlayer())
         val mutableMap = MutableLevelData(map.data)
 
         if(withCommentary) Log.v("LevelProgress", "performing history of length ${moves.data.size}.")

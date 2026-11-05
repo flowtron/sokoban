@@ -25,13 +25,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.getString
 //import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -39,10 +45,14 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
 import de.flowtron.sokoban.AppDestinations.ROUTE_GAME
 import de.flowtron.sokoban.R
+import de.flowtron.sokoban.room.RoomHolder
 import de.flowtron.sokoban.room.RoomLevel
+import de.flowtron.sokoban.safeLaunch
 import de.flowtron.sokoban.state.GameDataInfo
 import de.flowtron.sokoban.state.StateFlowHolder
 import de.flowtron.sokoban.ui.models.LevelsViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
 
 /*
 
@@ -56,12 +66,15 @@ import de.flowtron.sokoban.ui.models.LevelsViewModel
 fun LevelsScreen(
     levelsViewModel: LevelsViewModel = hiltViewModel(),
     stateFlowHolder: StateFlowHolder,
+    roomHolder: RoomHolder,
     navController: androidx.navigation.NavHostController,
+//    combo: String? = null,
+//    world: String? = null,
 ) {
     val localLevelInfoLiveData: List<RoomLevel> by levelsViewModel.allLevels.observeAsState(
         emptyList()
     )
-    Log.d("LevelsScreen", "localLevelInfoLiveData: ${localLevelInfoLiveData.size} top level items")
+    Log.d("LevelsScreen", "localLevelInfoLiveData: ${localLevelInfoLiveData.size} puzzles")
 
     Surface(color = MaterialTheme.colorScheme.background) {
         val scrollState = rememberScrollState()
@@ -79,7 +92,10 @@ fun LevelsScreen(
                     localLevelInfoLiveData,
                     levelsViewModel,
                     stateFlowHolder,
-                    navController
+                    roomHolder,
+                    navController,
+//                    combo,
+//                    world,
                 )
             }
             Spacer(modifier = Modifier.size(60.dp))
@@ -92,20 +108,23 @@ fun LevelInfoList(
     levelLiveData: List<RoomLevel>,
     levelsViewModel: LevelsViewModel,
     stateFlowHolder: StateFlowHolder,
-    navController: androidx.navigation.NavHostController = rememberNavController()
+    roomHolder: RoomHolder,
+    navController: androidx.navigation.NavHostController = rememberNavController(),
+//    combo: String?,
+//    world: String?,
 ) {
     val providerBG: Color = colorResource(id = R.color.comboProviderBG)
     Column(
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        levelLiveData.groupBy { it.combo }.forEach { (combo, worlds) ->
-            requireNotNull(combo)
-            ComboHeader(combo, providerBG)
+        levelLiveData.groupBy { it.combo }.forEach { (listCombo, worlds) ->
+            requireNotNull(listCombo)
+            ComboHeader(listCombo, providerBG)
 
-            worlds.groupBy { it.world }.forEach { (world, levels) ->
-                requireNotNull(world)
-                WorldHeader(combo, world, stateFlowHolder, levels)
-                WorldColumn(levels, combo, world, levelsViewModel, stateFlowHolder, navController)
+            worlds.groupBy { it.world }.forEach { (listWorld, levels) ->
+                requireNotNull(listWorld)
+                WorldHeader(listCombo, listWorld, stateFlowHolder, levels)
+                WorldColumn(levels, listCombo, listWorld, levelsViewModel, stateFlowHolder, roomHolder,navController)
             }
         }
     }
@@ -246,10 +265,33 @@ fun getLevelBackgroundColor(level: RoomLevel): Color {
 }
 
 @Composable
-fun WorldColumn(levels: List<RoomLevel>, combo: String, world: String, levelsViewModel: LevelsViewModel, stateFlowHolder: StateFlowHolder, navController: androidx.navigation.NavHostController ) {
+fun WorldColumn(levels: List<RoomLevel>, combo: String, world: String, levelsViewModel: LevelsViewModel, stateFlowHolder: StateFlowHolder, roomHolder: RoomHolder, navController: androidx.navigation.NavHostController ) {
     val currentHierarchyStateFlow = stateFlowHolder.levelHierarchyStateFlow.hierarchy.collectAsStateWithLifecycle()
     val currentHierarchy = currentHierarchyStateFlow.value
+    val hideDoneLevels = remember { mutableStateOf(true) }
+    val hasSolvedLevels = levels.any{ it.done }
+    val coroutineScope = rememberCoroutineScope()
     if(currentHierarchy.first == combo && currentHierarchy.second == world) {
+        if(hasSolvedLevels) {
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                shape = CutCornerShape(4.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorResource(id = R.color.levelFinishedBG),
+                    contentColor = colorResource(id = R.color.levelFinishedFG)
+                ),
+                onClick = {
+                    hideDoneLevels.value = !hideDoneLevels.value
+                }
+            ) {
+                val msg = if(hideDoneLevels.value) {
+                    stringResource(R.string.levels_show_done)
+                } else {
+                    stringResource(R.string.levels_hide_done)
+                }
+                Text(text = msg)
+            }
+        }
         FlowRow(
             modifier = Modifier
                 .fillMaxWidth()
@@ -258,31 +300,35 @@ fun WorldColumn(levels: List<RoomLevel>, combo: String, world: String, levelsVie
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             levels.forEach { level ->
-                Button(
-                    border = getLevelBorderStroke(level),
-                    shape = CutCornerShape(4.dp), // RoundedCornerShape(20.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = getLevelBackgroundColor(level),
-                    ),
-                    onClick = {
-                        levelButtonClick(
-                            level,
-                            combo,
-                            world,
-                            levelsViewModel,
-                            stateFlowHolder,
-                            navController
-                        )
+                if(!hideDoneLevels.value || !level.done){
+                    Button(
+                        border = getLevelBorderStroke(level),
+                        shape = CutCornerShape(4.dp), // RoundedCornerShape(20.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = getLevelBackgroundColor(level),
+                        ),
+                        onClick = {
+                            levelButtonClick(
+                                level,
+                                combo,
+                                world,
+                                levelsViewModel,
+                                stateFlowHolder,
+                                roomHolder,
+                                coroutineScope,
+                                navController
+                            )
+                        }
+                    ) {
+                        Text(text = "${level.level?.format("%03d")}") // FIXME: this is not guaranteed, is it – should be a possibly alpha-numeric filename.
                     }
-                ) {
-                    Text(text = "${level.level?.format("%03d")}") // FIXME: this is not guaranteed, is it – should be a possibly alpha-numeric filename.
                 }
             }
         }
     }
 }
 
-fun levelButtonClick(level: RoomLevel, combo: String, world: String, levelsViewModel: LevelsViewModel, stateFlowHolder: StateFlowHolder, navController: androidx.navigation.NavHostController) {
+fun levelButtonClick(level: RoomLevel, combo: String, world: String, levelsViewModel: LevelsViewModel, stateFlowHolder: StateFlowHolder, roomHolder: RoomHolder, coroutineScope: CoroutineScope, navController: androidx.navigation.NavHostController) {
     Log.i(
         "HomeFragment",
         "clicked on level [ID ${level.id}] [$combo:$world:${level.level}]"
@@ -304,6 +350,10 @@ fun levelButtonClick(level: RoomLevel, combo: String, world: String, levelsViewM
         )
     } else {
         stateFlowHolder.coordinatesStateFlow.setCoordinates(null)
+        coroutineScope.safeLaunch {
+            requireNotNull(requestedGameDataInfo.id)
+            roomHolder.setCurrentLevel(requestedGameDataInfo.id.toInt())
+        }
 
         navController.navigate("$ROUTE_GAME/${requestedGameDataInfo.id}") {
             popUpTo(navController.graph.findStartDestination().id) {

@@ -53,7 +53,7 @@ class RoomHolder @Inject constructor(
             Log.i("RoomHolder", "updateRoomLevels")
             populateLevelsFromAssets()
         } else {
-            Log.i("RoomHolder", "Levels table contains ${localLevels.size} levels")
+            Log.i("RoomHolder", "Puzzles table contains ${localLevels.size} puzzles")
             //liveDataHolder.postLevelRowLiveData(localLevels)
         }
     }
@@ -87,7 +87,7 @@ class RoomHolder @Inject constructor(
         }
         val curCount = roomLevelDao.getLevelCount()
         val addedCount = curCount - origCount
-        Log.i("RoomHolder", "Levels populated with $addedCount levels from assets.")
+        Log.i("RoomHolder", "Puzzles populated with $addedCount puzzles from assets.")
     }
 
     suspend fun markSetupAsDone() = withContext(Dispatchers.IO) {
@@ -96,9 +96,46 @@ class RoomHolder @Inject constructor(
             val updatedConfig = it.copy(isInitialSetupDone = true)
             roomStatusDao.updateConfiguration(updatedConfig)
             currentRoomStatus = updatedConfig
-            //need to update the stateflow upstream
+            //we update the stateflow upstream
             println("ConfigurationHolder: Initial setup marked as DONE.")
         }
     }
 
+    suspend fun setCurrentLevel(levelId: Int) = withContext(Dispatchers.IO) {
+        val config = currentRoomStatus ?: roomStatusDao.getConfigurationSnapshot()
+        config?.let {
+            val updatedConfig = it.copy(lastLevelId = levelId)
+            roomStatusDao.updateConfiguration(updatedConfig)
+            currentRoomStatus = updatedConfig
+            //need to update the stateflow upstream
+            Log.d("RoomHolder", "ConfigurationHolder: current level set to $levelId.")
+        }
+    }
+
+    suspend fun getNextLevel() : RoomLevel? {
+        var rLevel : RoomLevel? = null
+        val config = currentRoomStatus ?: roomStatusDao.getConfigurationSnapshot()
+        Log.d("RoomHolder", "getNextLevel has config? ${if(config!=null){"OK"}else{"NOT LOADED"}}")
+        config?.let { config ->
+            Log.d("RoomHolder", "config lastLevelId = ${config.lastLevelId}")
+            if(config.lastLevelId != null){
+                val curLevel = roomLevelDao.getLevelById(config.lastLevelId)
+                if(curLevel != null){
+                    Log.d("RoomHolder", "curLevel = [${curLevel.combo},${curLevel.world}]")
+                    val curCombo = curLevel.combo
+                    val curWorld = curLevel.world
+                    // the nextLevel ID 'should be' one up .. is a bit of a cheat/hack/poor mans solution
+                    // but it should work reliably enough
+                    requireNotNull(curCombo)
+                    requireNotNull(curWorld)
+                    val nextLevel = roomLevelDao.getNextLevel(curCombo, curWorld, config.lastLevelId + 1L)
+                    Log.d("RoomHolder", nextLevel.toString())
+                    if(nextLevel != null) {
+                        rLevel = nextLevel
+                    }
+                }
+            }
+        }
+        return rLevel
+    }
 }

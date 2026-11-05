@@ -22,7 +22,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.flowtron.sokoban.game.Cell
 import de.flowtron.sokoban.game.isPlayer
+import de.flowtron.sokoban.room.RoomHolder
 import de.flowtron.sokoban.safeLaunch
+import de.flowtron.sokoban.state.GameDataInfo
 import de.flowtron.sokoban.state.Renderer.BOTH
 import de.flowtron.sokoban.state.Renderer.DRAW
 import de.flowtron.sokoban.state.Renderer.TEXT1
@@ -31,7 +33,7 @@ import de.flowtron.sokoban.state.StateFlowHolder
 import de.flowtron.sokoban.ui.models.GameViewModel
 
 @Composable
-fun VisualDataRender(stateFlowHolder: StateFlowHolder, gameViewModel: GameViewModel) {
+fun VisualDataRender(stateFlowHolder: StateFlowHolder, roomHolder: RoomHolder, gameViewModel: GameViewModel) {
     val currentScale by stateFlowHolder.scaleStateFlow.scale.collectAsStateWithLifecycle()
     val currentLevelData by stateFlowHolder.levelDataStateFlow.levelData.collectAsStateWithLifecycle()
     val currentLevelSolution by stateFlowHolder.levelSolutionStateFlow.levelSolution.collectAsStateWithLifecycle()
@@ -50,6 +52,7 @@ fun VisualDataRender(stateFlowHolder: StateFlowHolder, gameViewModel: GameViewMo
         } else {
             requireNotNull(currentLevelData)
         }
+        // this is actually a required reassignment, but it seems very clunky!
         val innerCoordinates = requireNotNull(currentCoordinates)
         val innerOffset = requireNotNull(currentOffset)
 
@@ -146,6 +149,7 @@ fun VisualDataRender(stateFlowHolder: StateFlowHolder, gameViewModel: GameViewMo
             }
         }
     } else {
+        val targetLevel = roomHolder.getRoomStatus()?.lastLevelId
         stateFlowHolder.levelDataStateFlow.showLevelData()
         stateFlowHolder.gameDataInfoStateFlow.showGameDataInfo()
         stateFlowHolder.coordinatesStateFlow.showCoordinates()
@@ -157,6 +161,19 @@ fun VisualDataRender(stateFlowHolder: StateFlowHolder, gameViewModel: GameViewMo
 
             scope.safeLaunch {
                 gameViewModel.loadLevel(gameDataInfo = curGaLeIn)
+            }
+        }else{
+            val targetPuzzle = roomHolder.getRoomLevels().findLast { it.id.toInt() == targetLevel }
+            if(targetPuzzle!=null){
+                Log.d("VisualDataRender", "going to target puzzle id:$targetLevel:${targetPuzzle.combo}, ${targetPuzzle.world}, ${targetPuzzle.level}")
+                requireNotNull(targetPuzzle.world)
+                requireNotNull(targetPuzzle.combo)
+                requireNotNull(targetPuzzle.level)
+                val nextGameInfo = GameDataInfo(id=targetPuzzle.id, combo=targetPuzzle.combo, world = targetPuzzle.world, level = targetPuzzle.level)
+                stateFlowHolder.gameDataInfoStateFlow.setGameDataInfo(nextGameInfo)
+                scope.safeLaunch {
+                    gameViewModel.loadLevel(gameDataInfo = nextGameInfo)
+                }
             }
         }
     }

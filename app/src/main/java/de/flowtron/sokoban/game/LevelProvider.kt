@@ -13,7 +13,7 @@ class LevelProvider @Inject constructor(
 
     companion object {
         const val COMBO_ASSET_DIR = "combos"
-        const val LEVEL_EXTENSION = "l"
+        const val PUZZLE_EXTENSION = "l"
     }
     /*
      * combo-1:
@@ -42,15 +42,15 @@ class LevelProvider @Inject constructor(
                 //it.toInt() // we used to force our world names to be numeric .. no real need
                 it // I hope this is a acceptable lexical ordering by default otherwise we'll need a sorting method here
             }.forEach { world ->
-                val levels = assetReader.listFilesWithExtension("$COMBO_ASSET_DIR/$combo/$world", LEVEL_EXTENSION)
-                mapOfWorld[world] = levels.map { it.split('.')[0] }
+                val puzzles = assetReader.listFilesWithExtension("$COMBO_ASSET_DIR/$combo/$world", PUZZLE_EXTENSION)
+                mapOfWorld[world] = puzzles.map { it.split('.')[0] }
 
-                levelInfo[combo] = levels.size
-                //Log.v("LevelProvider", "World $world has ${levels.size} levels.")
+                levelInfo[combo] = puzzles.size
+                //Log.v("LevelProvider", "World $world has ${levels.size} puzzles.")
             }
             result[combo] = mapOfWorld
         }
-        Log.d("LevelProvider", "Levels in combos: ${levelInfo.map { (k, v) -> "$k: $v" }.joinToString(", ")}")
+        Log.d("LevelProvider", "Puzzles in combos: ${levelInfo.map { (k, v) -> "$k: $v" }.joinToString(", ")}")
         return result
     }
 }

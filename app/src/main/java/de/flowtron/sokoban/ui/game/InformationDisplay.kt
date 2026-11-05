@@ -20,7 +20,7 @@ fun InformationDisplay(
     getMovementStream: (String, Int) -> AnnotatedString
 ) {
     // WIP info display
-    // player position PP, map center MC, offsetXY
+    // player position PP, map centre MC, offsetXY
     //val coordinates = stateFlowHolder.coordinatesStateFlow.coordinates.value //setCoordinates(nowAt.copy(x = nowAt.x + 1))
     val observedCoordinates by stateFlowHolder.coordinatesStateFlow.coordinates.collectAsStateWithLifecycle() // player position
     val observedOffset by stateFlowHolder.offsetStateFlow.offset.collectAsStateWithLifecycle() // map offset

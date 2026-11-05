@@ -35,8 +35,16 @@ class LevelLoader @Inject constructor(
             //val levelData = levelParser.parseLevelBinaryDataToLevelData(levelDataOrNull)
             //val previousCellCount = levelByteArrayOrNull.size
 
-            val levelData = levelParser.expandedLevelFromBinaryData(levelByteArrayOrNull)
+            val levelDataPair = levelParser.expandedLevelFromBinaryData(levelByteArrayOrNull)
+            val levelData = levelDataPair.first
+            val edgeAdded = levelDataPair.second
+            val scaleSuggest = levelDataPair.third
             requireNotNull(levelData)
+
+            // new
+            // TODO: clever decision on whether or not to use edgeAdded may rely on map size smaller displayable size
+            val suggestedOffset = Coordinates(-(1+3*edgeAdded/2),-edgeAdded)
+            stateFlowHolder.scaleStateFlow.setScale(levelData, scaleSuggest)
 
             stateFlowHolder.levelDataStateFlow.setLevelData(levelData)
             stateFlowHolder.levelDataStateFlow.showLevelData()
@@ -44,7 +52,7 @@ class LevelLoader @Inject constructor(
             stateFlowHolder.levelOriginalStateFlow.setLevelOriginal(levelData)
             stateFlowHolder.levelSolutionStateFlow.setLevelSolution(levelData)
 
-            stateFlowHolder.scaleStateFlow.setScale(levelData, 15) // passably sane default: 3 .. 5 .. 7
+            //stateFlowHolder.scaleStateFlow.setScale(levelData, 15) // passably sane default: 3 .. 5 .. 7
 
             // find out what is stored in database - e.g. FINISHED, and HISTORY (see below)
             val roomData = roomLevelDao.getLevelById(gameDataInfo.id?.toInt() ?: -1) // levelData.data.)
@@ -89,7 +97,7 @@ class LevelLoader @Inject constructor(
                     Log.i("LevelLoader", "RoomData [NULL]")
                 }
             }
-            stateFlowHolder.offsetStateFlow.setOffset(Coordinates(0,0))
+            stateFlowHolder.offsetStateFlow.setOffset(suggestedOffset)
 
             // reset all level specific state flows .. much already dealt with above.
             //stateFlowHolder.levelFinishedStateFlow.setLevelFinished(false)
@@ -109,7 +117,8 @@ class LevelLoader @Inject constructor(
                 stateFlowHolder.movementHistoryStateFlow.setIndex(useAsHistory.size())
 
                 val origMap = requireNotNull(stateFlowHolder.levelOriginalStateFlow.levelOriginal.value)
-                val changedMap = levelProgress.performHistory(origMap, useAsHistory)
+                val goodPos = if(!missingPlayer) { stateFlowHolder.coordinatesStateFlow.coordinates.value } else { null }
+                val changedMap = levelProgress.performHistory(origMap, useAsHistory, goodPos)
 
                 val bufCommentary = levelProgress.withCommentary
                 levelProgress.setCommentary(false)

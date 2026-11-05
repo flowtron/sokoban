@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Sokoban</string>
+    <string name="app_is_updating">App wird aktualisiert …</string>
     <string name="app_is_configured">App ist konfiguriert.</string>
     <string name="app_is_initialising">App wird initialisiert …</string>
     <string name="doc_articles_title">Hilfe zu Sokoban</string>
+    <string name="screen_doc">Doku</string>
+    <string name="screen_puzzles">Puzzle</string>
+    <string name="screen_game">Spiel</string>
+    <string name="screen_settings">Einstellungen</string>
+    <string name="levels_show_done">Fertige zeigen</string>
+    <string name="levels_hide_done">Fertige ausblenden</string>
+    <string name="pick_puzzle">Wähle Puzzle</string>
+    <string name="levels_next">Nächstes Puzzle</string>
+    <string name="success">Erfolg!</string>
 </resources>

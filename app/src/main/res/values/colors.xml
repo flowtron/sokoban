@@ -13,6 +13,7 @@
     <color name="worldHeadBG2">#FF49925D</color>
     <color name="levelFreshBG">#FF495D92</color>
     <color name="levelFinishedBG">#FF293D52</color>
+    <color name="levelFinishedFG">#FF48B8C4</color>
     <color name="levelCurrentActive">#FF1680D8</color>
     <color name="levelUsedSolution">#FFFF0000</color>
     <color name="worldOutsideBG">#ff202836</color>

@@ -20,7 +20,7 @@ android {
     // TODO: proper versioning .. for now we do it manually
     // manual versioning
     val versionBase = "1.0.0" // base version we are working on
-    val buildCounter = 11 // build counter
+    val buildCounter = 12 // build counter
 
     defaultConfig {
         applicationId = "de.flowtron.sokoban"
@@ -29,11 +29,9 @@ android {
         targetSdk = 36
 
         val versionGateway = "beta"
-        val gatewayOffsets = mapOf(
-            "alpha" to 0,
-            "beta" to 10,
-        )
-        versionCode = buildCounter - gatewayOffsets.getOrDefault(versionGateway, 0) // code begins at 1 for each new range …
+        //val gatewayOffsets = mapOf("alpha" to 0,"beta" to 10, )
+        //versionCode = buildCounter - gatewayOffsets.getOrDefault(versionGateway, 0) // code begins at 1 for each new range …
+        versionCode = buildCounter
         versionName = "${versionBase}-${versionGateway}-${versionCode}" // e.g. "12.2.34-epsilon-803"
 
         buildConfigField("String", "VERSION_NAME", "\"$versionName\"")

@@ -2,6 +2,7 @@ package de.flowtron.sokoban.game
 
 import android.util.Log
 import javax.inject.Inject
+import kotlin.math.max
 
 class LevelParser @Inject constructor() {
 
@@ -54,11 +55,18 @@ class LevelParser @Inject constructor() {
         return ""
     }
 
-    fun expandedLevelFromBinaryData(levelDataOrNull: ByteArray): LevelData? {
+    fun expandedLevelFromBinaryData(levelDataOrNull: ByteArray): Triple<LevelData?,Int,Int> {
         val parsedLevelData = parseLevelBinaryDataToLevelData(levelDataOrNull)
         val mutableLevelData = MutableLevelData(requireNotNull(parsedLevelData).data)
-        mutableLevelData.expand(2)
-        return mutableLevelData.toLevelData()
+        val levelData = mutableLevelData.toLevelData()
+        //val Pair(edge,scale)
+        val minDimX = (15-levelData.dimensions.x)/2
+        val minDimY = (10-levelData.dimensions.y)/2
+        val minDimEdge = max(2, max(minDimX, minDimY))
+        Log.d("LevelParser", "minDimEdge $minDimEdge (2, $minDimX, $minDimY)")
+        val edge = mutableLevelData.expand(minDimEdge)
+        val scale = minDimEdge + max(levelData.dimensions.x, levelData.dimensions.y)
+        return Triple(levelData, edge, scale)
     }
 
     fun parseLevelBinaryDataToLevelData(levelDataOrNull: ByteArray): LevelData? {

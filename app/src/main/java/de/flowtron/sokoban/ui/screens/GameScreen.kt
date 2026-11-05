@@ -1,12 +1,24 @@
 package de.flowtron.sokoban.ui.screens
 
 import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.typography
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -16,18 +28,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import de.flowtron.sokoban.AppDestinations.ROUTE_GAME
+import de.flowtron.sokoban.AppDestinations.ROUTE_PUZZLES
 //import de.flowtron.sokoban.audio.SoundPoolPlayer
 import de.flowtron.sokoban.game.Coordinates
 import de.flowtron.sokoban.game.LevelData
 import de.flowtron.sokoban.game.LevelProgress
 import de.flowtron.sokoban.game.MovementHistory
 import de.flowtron.sokoban.next
+import de.flowtron.sokoban.room.RoomHolder
 import de.flowtron.sokoban.safeLaunch
 import de.flowtron.sokoban.state.StateFlowHolder
 import de.flowtron.sokoban.ui.game.InteractionControlWidget
@@ -40,26 +58,37 @@ import kotlinx.coroutines.delay
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
 
+/*
 @Preview(showBackground = true)
 @Composable
 fun GameScreenPreview() {
-    GameScreen()
-}
+    GameScreen(Modifier(),)
+}*/
 
 @Composable
 fun GameScreen(
     modifier: Modifier = Modifier,
     gameViewModel: GameViewModel = hiltViewModel(),
     // we're doing requireNotNull below … could we not enforce it here already?
-    stateFlowHolder: StateFlowHolder? = null, // FIXME: does this really need to be nullable?
-    levelProgress: LevelProgress? = null, // FIXME: same re:nullable
+    // ah -- then there is the problem with the PREVIEW … well we will do w/o preview for now :-P
+    stateFlowHolder: StateFlowHolder, // FIXME: does this really need to be nullable?
+    levelProgress: LevelProgress, // FIXME: same re:nullable
 //    soundPoolPlayer: SoundPoolPlayer? = null, // this one is still a problem, meaning null while it shouldn't
+    navController: NavController,
+    roomHolder: RoomHolder,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    requireNotNull(stateFlowHolder) // see above re:nullable - also below re: default composable
-    requireNotNull(levelProgress)
+
+    //requireNotNull(stateFlowHolder) // see above re:nullable - also below re: default composable
+    //requireNotNull(levelProgress)
     //requireNotNull(soundPoolPlayer)
-    RenderGameScreen(coroutineScope, modifier, stateFlowHolder, levelProgress, gameViewModel)//, soundPoolPlayer)
+
+    val mapFinished = stateFlowHolder.mapFinishedStateFlow.finished.collectAsStateWithLifecycle()
+
+    RenderGameScreen(coroutineScope, modifier, stateFlowHolder, levelProgress, gameViewModel, roomHolder)//, soundPoolPlayer)
+    if(mapFinished.value){
+        RenderFinishDialog(gameViewModel, navController, roomHolder)
+    }
 }
 
 private fun setSolutionDelta(
@@ -155,14 +184,123 @@ fun logLevelData(levelData: LevelData?) {
 }
 
 @Composable
+fun RenderFinishDialog(
+    gameViewModel: GameViewModel,
+    //stateFlowHolder: StateFlowHolder,
+    navController: NavController,
+    roomHolder: RoomHolder,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = .5f))
+            .clickable(
+                indication = null,
+                interactionSource = remember {MutableInteractionSource() }
+            ) {
+                // TODO close dialog onClick
+            },
+            contentAlignment = Alignment.Center
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.85f)
+                .wrapContentHeight(),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 8.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = stringResource(de.flowtron.sokoban.R.string.success),
+                    style = typography.titleSmall //typography.titleLarge
+                )
+
+                /*Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Bitte wähle eine der folgenden Optionen aus:",
+                    style = typography.bodyMedium
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))*/
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    /*Button(
+                        onClick = {  },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Exit")
+                    }*/
+
+                    OutlinedButton(
+                        onClick = {
+                            gameViewModel.viewModelScope.safeLaunch {
+                                Log.d("GameScreen", "onclick for PICK PUZZLE")
+                                navController.navigate(ROUTE_PUZZLES) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        inclusive = true
+                                    } // in question
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        //Text(R.string.menu_levels)
+                        Text(stringResource(de.flowtron.sokoban.R.string.pick_puzzle))
+                    }
+
+                    TextButton(
+                        onClick = {
+                            Log.d("GameScreen", "onclick for NEXT PUZZLE")
+                            gameViewModel.viewModelScope.safeLaunch {
+                                val nextLevel = roomHolder.getNextLevel()
+                                var gotoRoute = ROUTE_GAME // ROUTE_PUZZLES
+
+                                if(nextLevel != null) {
+                                    //gotoRoute += "/${nextLevel.combo}/${nextLevel.world}/${nextLevel.id}"
+                                    gotoRoute += "/$nextLevel.id"
+                                }
+
+                                Log.d("GameScreen", "gotoRoute = '$gotoRoute'")
+                                navController.navigate(gotoRoute) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        inclusive = true
+                                    } // in question
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(de.flowtron.sokoban.R.string.levels_next))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun RenderGameScreen(
     coroutineScope: CoroutineScope,
     modifier: Modifier,
     stateFlowHolder: StateFlowHolder,
     levelProgress: LevelProgress,
     gameViewModel: GameViewModel,
+    roomHolder: RoomHolder,
 //    soundPoolPlayer: SoundPoolPlayer?,
 ) {
+    //val _ = roomHolder.getRoomStatus().movementMethod
     val dragPusherX = remember { mutableFloatStateOf(0f) }
     val dragPusherY = remember { mutableFloatStateOf(0f) }
     val swipeJob = remember { mutableStateOf<Job?>(null) }
@@ -234,7 +372,7 @@ fun RenderGameScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             //InformationDisplay(stateFlowHolder, gameViewModel, ::getMovementStream)
-            VisualDataRender(stateFlowHolder, gameViewModel)
+            VisualDataRender(stateFlowHolder, roomHolder, gameViewModel)
         }
 
         //requireNotNull(stateFlowHolder)
