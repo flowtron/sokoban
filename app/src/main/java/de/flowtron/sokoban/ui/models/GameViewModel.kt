@@ -34,7 +34,7 @@ class GameViewModel @Inject constructor(
 
     suspend fun loadLevel(gameDataInfo: GameDataInfo) {
         levelLoader.loadMap(gameDataInfo, assetManager, roomLevelDao)
-        stateFlowHolder.mapFinishedStateFlow.setMapFinished(false)
+        //stateFlowHolder.mapFinishedStateFlow.setMapFinished(false)
     }
 
     fun loadSolution(gameDataInfo: GameDataInfo): MovementHistory? {

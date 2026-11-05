@@ -82,33 +82,18 @@ fun MainAppView(
 ) {
     val navController = rememberNavController()
 
-    // FIXME this works differently than intuited; our composables aren't alive as much as we thought
-    // State to track if a level has been selected, determining "Game" tab availability
-    var selectedLevel by remember { mutableStateOf<Long?>(targetPuzzle?.id ) } // Store selected level ID, null if none
+    // StateFlow to track if a level has been selected, determining "Game" tab availability
+    var selectedLevel by remember { mutableStateOf(targetPuzzle?.id ) } // Store selected level ID, null if none
 
+    // just keep track of the current game
     val currentGameDataInfo = stateFlowHolder.gameDataInfoStateFlow.gameDataInfo.collectAsStateWithLifecycle()
     if (currentGameDataInfo.value != null) {
         if (selectedLevel != currentGameDataInfo.value!!.id) {
             selectedLevel = currentGameDataInfo.value!!.id
             Log.i("MainAppView", "selectedLevel = $selectedLevel")
-            //coroutineScope.safeLaunch {  }
-            /*safeLaunch {
-
-            }*/
-            //roomHolder.setCurrentLevel(selectedLevel)
         }
     }
 
-//    // DEBUG -- wanna see it triggered
-//    LaunchedEffect(currentGameDataInfo) {
-//        val gli = currentGameDataInfo.value
-//        if (gli != null) {
-//            Log.i("MainAppView", "New game level info: ${gli.id} ${gli.combo}:${gli.world}:${gli.level}")
-//        }
-//    }
-
-    // FYI: the enabled boolean we had here is now dealt with in the logic
-    // only the gameRoute is going to be toggled and the criteria is clear-cut
     val navItems = listOf(
         BottomNavItem(
             label = getString(context,R.string.screen_doc),
@@ -152,7 +137,7 @@ fun MainAppView(
         }
     ) { innerPadding ->
         // >> INITIAL DESTINATION:
-        val language = "en" // where is our "currentLanguage"?
+        val language = "en" // FIXME where is our "currentLanguage"?
         val article = "index.md"
         val config = roomHolder.getRoomStatus()
         requireNotNull(config)
@@ -196,8 +181,6 @@ fun MainAppView(
                     stateFlowHolder,
                     roomHolder,
                     navController,
-//                    combo = combo,
-//                    world = world,
                 )
             }
 
@@ -210,6 +193,7 @@ fun MainAppView(
                 route = "${ROUTE_GAME}/{levelId}",
                 arguments = listOf(navArgument("levelId") { type = NavType.LongType })
             ) { backstackEntry ->
+                // not seen when the LastPuzzle is opened
                 Log.i("MainAppView", "going to GAME ${backstackEntry.arguments?.getLong("levelId")}")
                 ShowGameScreen(
                     backstackEntry,
@@ -247,8 +231,6 @@ fun MainAppView(
 
             // fail-safe fallback – MUST BE last
             composable("{*path}") {
-                //LevelsScreen(levelsViewModel,stateFlowHolder,navController)
-                //DocScreen(docArticleProvider)
                 navController.navigate(ROUTE_HELP) {
                     //popUpTo(navController.graph.findStartDestination().id) { inclusive = true } // in question
                     launchSingleTop = true
@@ -266,14 +248,13 @@ private fun ShowGameScreen(
     stateFlowHolder: StateFlowHolder,
     levelProgress: LevelProgress,
     toastHandler: ToastHandler,
-    //context: Context,
     navController: NavHostController,
     roomHolder: RoomHolder,
 ) {
     val passedLevelId = backstackEntry.arguments?.getLong("levelId")
     if (passedLevelId != null) {
         // this is triggered multiple times after a click on an item on the LevelsScreen
-        //Log.i("MainAppView", "Displaying GameScreen for LevelId = $passedLevelId")
+        Log.i("MainAppView", "Displaying GameScreen for LevelId = $passedLevelId")
         GameScreen(
             modifier = Modifier,
             gameViewModel = gameViewModel,
@@ -281,9 +262,9 @@ private fun ShowGameScreen(
             levelProgress = levelProgress,
             navController = navController,
             roomHolder = roomHolder,
-        ) // levelId = passedLevelId,
+        )
     } else {
-        LaunchNavigateToLevelsScreen(toastHandler, /*context, */navController)
+        LaunchNavigateToLevelsScreen(toastHandler, navController)
     }
 }
 
@@ -303,7 +284,6 @@ private fun ShowDocArticleScreen(
 @Composable
 private fun LaunchNavigateToLevelsScreen(
     toastHandler: ToastHandler,
-    //context: Context,
     navController: NavHostController
 ) {
     //Log.e("MainAppView", "LevelId is null even with argument, redirecting.")
@@ -321,7 +301,6 @@ private fun LaunchNavigateToLevelsScreen(
 
 @Composable
 private fun AlwaysNeedSelectedLevel(
-    //toastHandler: ToastHandler,
     navController: NavHostController
 ) {
     LaunchedEffect(Unit) {
@@ -352,7 +331,7 @@ private fun RowScope.OneNavigationBarItem(
     val coroutineScope = rememberCoroutineScope()
 
     val isGameRoute = item.route == ROUTE_GAME
-    val isEnabled = if (isGameRoute) selectedLevel != null else true
+    val isEnabled = !isGameRoute || selectedLevel != null
 
     NavigationBarItem(
         selected = isSelectedNavDestination(currentDestination, isGameRoute, selectedLevel, item),
@@ -365,7 +344,6 @@ private fun RowScope.OneNavigationBarItem(
             toastHandler,
             roomHolder,
             coroutineScope,
-            //context
         ),
 
         icon = { Icon(item.icon, contentDescription = item.label) },
@@ -384,12 +362,11 @@ private fun onNavItemClick(
     toastHandler: ToastHandler,
     roomHolder: RoomHolder,
     coroutineScope: CoroutineScope
-    //context: Context
 ): () -> Unit = {
     //val coroutineScope = rememberCoroutineScope()
     if (isEnabled) {
         val usableRoute = if (isGameRoute && selectedLevel !== null) {
-            "${ROUTE_GAME}/$selectedLevel" // FIXME combo/world/id should be the path
+            "${ROUTE_GAME}/$selectedLevel" // FIXME? combo/world/puzzle should be the path
         } else {
             item.route
         }
@@ -402,21 +379,17 @@ private fun onNavItemClick(
             }
         }
         Log.i("MainAppView", "usable route is '$usableRoute'")
-        // LaunchedEffect(usableRoute) {}
-        //LaunchedEffect(Unit) {
-            Log.i("MainAppView", "route used is now '$usableRoute'")
-            navController.navigate(usableRoute) {
-                popUpTo(navController.graph.findStartDestination().id) {
-                    saveState = true // all others have inclusive = true here
-                }
-                launchSingleTop = true
-                restoreState = true
+        navController.navigate(usableRoute) {
+            popUpTo(navController.graph.findStartDestination().id) {
+                saveState = true // all others have inclusive = true here
             }
-        //}
+            launchSingleTop = true
+            restoreState = true
+        }
+
     } else { // if (isGameRoute)
         toastHandler.showToast("Please Pick Puzzle")
     }
-    //return { Unit } // we're currently slightly confused about this … would like to purge it, but are stuck in a seems-required loop
 }
 
 @Composable

@@ -26,20 +26,19 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import de.flowtron.sokoban.AppDestinations.ROUTE_GAME
 import de.flowtron.sokoban.AppDestinations.ROUTE_PUZZLES
-//import de.flowtron.sokoban.audio.SoundPoolPlayer
 import de.flowtron.sokoban.game.Coordinates
 import de.flowtron.sokoban.game.LevelData
 import de.flowtron.sokoban.game.LevelProgress
@@ -68,24 +67,16 @@ fun GameScreenPreview() {
 @Composable
 fun GameScreen(
     modifier: Modifier = Modifier,
-    gameViewModel: GameViewModel = hiltViewModel(),
-    // we're doing requireNotNull below … could we not enforce it here already?
-    // ah -- then there is the problem with the PREVIEW … well we will do w/o preview for now :-P
-    stateFlowHolder: StateFlowHolder, // FIXME: does this really need to be nullable?
-    levelProgress: LevelProgress, // FIXME: same re:nullable
-//    soundPoolPlayer: SoundPoolPlayer? = null, // this one is still a problem, meaning null while it shouldn't
+    gameViewModel: GameViewModel,// = hiltViewModel(),
+    stateFlowHolder: StateFlowHolder,
+    levelProgress: LevelProgress,
     navController: NavController,
     roomHolder: RoomHolder,
 ) {
     val coroutineScope = rememberCoroutineScope()
-
-    //requireNotNull(stateFlowHolder) // see above re:nullable - also below re: default composable
-    //requireNotNull(levelProgress)
-    //requireNotNull(soundPoolPlayer)
-
     val mapFinished = stateFlowHolder.mapFinishedStateFlow.finished.collectAsStateWithLifecycle()
 
-    RenderGameScreen(coroutineScope, modifier, stateFlowHolder, levelProgress, gameViewModel, roomHolder)//, soundPoolPlayer)
+    RenderGameScreen(coroutineScope, modifier, stateFlowHolder, levelProgress, gameViewModel, roomHolder)
     if(mapFinished.value){
         RenderFinishDialog(gameViewModel, navController, roomHolder)
     }
@@ -140,21 +131,23 @@ private fun performPartialSolution(stateFlowHolder: StateFlowHolder, levelProgre
     }
 }
 
-private fun setOffsetBy(stateFlowHolder: StateFlowHolder, dx: Int, dy: Int) {
+private fun moveOffsetBy(stateFlowHolder: StateFlowHolder, dx: Int, dy: Int) {
     val offBy = requireNotNull(stateFlowHolder.offsetStateFlow.offset.value)
     val newOffBy = offBy.copy(x = offBy.x + dx, y = offBy.y + dy)
     stateFlowHolder.offsetStateFlow.setOffset(newOffBy)
 }
 
-private fun resetOffset(stateFlowHolder: StateFlowHolder/*, soundPoolPlayer: SoundPoolPlayer?*/) {
-    // place pusher in the center of the viewport, so top-left will depend on zoom-level
+private fun resetOffset(stateFlowHolder: StateFlowHolder) {
+    // place pusher in the centre of the viewport, so top-left will depend on zoom-level
 
     //stateFlowHolder.offsetStateFlow.setOffset(…)
-    Log.d("GameScreen", "reset offset: TODO")
-    stateFlowHolder.offsetStateFlow.showOffset()
-
-    /*if(soundPoolPlayer==null) Log.i("GameScreen", "SoundPoolPlayer is NULL")
-    soundPoolPlayer?.playOne() // indicate click processed - but no joy*/
+    //Log.d("GameScreen", "reset offset: TODO")
+    val playerAt = stateFlowHolder.coordinatesStateFlow.coordinates.value
+    val scaleLevel = stateFlowHolder.scaleStateFlow.scale.value
+    val floorHalf = scaleLevel / 2
+    requireNotNull(playerAt)
+    stateFlowHolder.offsetStateFlow.setOffset(Coordinates(playerAt.x-floorHalf, playerAt.y-floorHalf))
+    stateFlowHolder.offsetStateFlow.logOffset()
 }
 
 private fun onSolutionClicked(stateFlowHolder: StateFlowHolder, gameViewModel: GameViewModel) {
@@ -186,108 +179,109 @@ fun logLevelData(levelData: LevelData?) {
 @Composable
 fun RenderFinishDialog(
     gameViewModel: GameViewModel,
-    //stateFlowHolder: StateFlowHolder,
     navController: NavController,
     roomHolder: RoomHolder,
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = .5f))
-            .clickable(
-                indication = null,
-                interactionSource = remember {MutableInteractionSource() }
-            ) {
-                // TODO close dialog onClick
-            },
-            contentAlignment = Alignment.Center
-    ) {
-        Surface(
+    var showDialog by remember { mutableStateOf(true) }
+    if(showDialog){
+        Box(
             modifier = Modifier
-                .fillMaxWidth(0.85f)
-                .wrapContentHeight(),
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 8.dp
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = stringResource(de.flowtron.sokoban.R.string.success),
-                    style = typography.titleSmall //typography.titleLarge
-                )
-
-                /*Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Bitte wähle eine der folgenden Optionen aus:",
-                    style = typography.bodyMedium
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))*/
-
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = .5f))
+                .clickable(
+                    indication = null,
+                    interactionSource = remember {MutableInteractionSource() }
                 ) {
-                    /*Button(
-                        onClick = {  },
-                        modifier = Modifier.fillMaxWidth()
+                    // TODO close dialog onClick
+                    showDialog = false
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth(0.85f)
+                    .wrapContentHeight(),
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 8.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = stringResource(de.flowtron.sokoban.R.string.success),
+                        style = typography.titleSmall
+                    )
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("Exit")
-                    }*/
-
-                    OutlinedButton(
-                        onClick = {
-                            gameViewModel.viewModelScope.safeLaunch {
-                                Log.d("GameScreen", "onclick for PICK PUZZLE")
-                                navController.navigate(ROUTE_PUZZLES) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        inclusive = true
-                                    } // in question
-                                    launchSingleTop = true
-                                    restoreState = true
+                        OutlinedButton(
+                            onClick = {
+                                gameViewModel.viewModelScope.safeLaunch {
+                                    Log.d("GameScreen", "onclick for PICK PUZZLE")
+                                    navController.navigate(ROUTE_PUZZLES) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            inclusive = true
+                                        } // in question
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
                                 }
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        //Text(R.string.menu_levels)
-                        Text(stringResource(de.flowtron.sokoban.R.string.pick_puzzle))
-                    }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(de.flowtron.sokoban.R.string.pick_puzzle))
+                        }
 
-                    TextButton(
-                        onClick = {
-                            Log.d("GameScreen", "onclick for NEXT PUZZLE")
-                            gameViewModel.viewModelScope.safeLaunch {
-                                val nextLevel = roomHolder.getNextLevel()
-                                var gotoRoute = ROUTE_GAME // ROUTE_PUZZLES
+                        TextButton(
+                            onClick = {
+                                Log.d("GameScreen", "onclick for NEXT PUZZLE")
+                                gameViewModel.viewModelScope.safeLaunch {
+                                    val nextLevel = roomHolder.getNextLevel()
+                                    var gotoRoute = ROUTE_GAME // ROUTE_PUZZLES
 
-                                if(nextLevel != null) {
-                                    //gotoRoute += "/${nextLevel.combo}/${nextLevel.world}/${nextLevel.id}"
-                                    gotoRoute += "/$nextLevel.id"
+                                    if(nextLevel != null) {
+                                        //gotoRoute += "/${nextLevel.combo}/${nextLevel.world}/${nextLevel.id}"
+                                        gotoRoute += "/$nextLevel.id"
+                                    }
+
+                                    Log.d("GameScreen", "gotoRoute = '$gotoRoute'")
+                                    navController.navigate(gotoRoute) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            inclusive = true
+                                        } // in question
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
                                 }
-
-                                Log.d("GameScreen", "gotoRoute = '$gotoRoute'")
-                                navController.navigate(gotoRoute) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        inclusive = true
-                                    } // in question
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(stringResource(de.flowtron.sokoban.R.string.levels_next))
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(de.flowtron.sokoban.R.string.levels_next))
+                        }
                     }
                 }
             }
         }
+    }else{
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable(
+                    indication = null,
+                    interactionSource = remember {MutableInteractionSource() }
+                ) {
+                    showDialog = true
+                },
+            contentAlignment = Alignment.Center
+        ) {
+        }
+
+
     }
+
 }
 
 @Composable
@@ -298,9 +292,8 @@ fun RenderGameScreen(
     levelProgress: LevelProgress,
     gameViewModel: GameViewModel,
     roomHolder: RoomHolder,
-//    soundPoolPlayer: SoundPoolPlayer?,
 ) {
-    //val _ = roomHolder.getRoomStatus().movementMethod
+    //TODO: swipe or click | val _ = roomHolder.getRoomStatus().movementMethod
     val dragPusherX = remember { mutableFloatStateOf(0f) }
     val dragPusherY = remember { mutableFloatStateOf(0f) }
     val swipeJob = remember { mutableStateOf<Job?>(null) }
@@ -371,13 +364,8 @@ fun RenderGameScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            //InformationDisplay(stateFlowHolder, gameViewModel, ::getMovementStream)
             VisualDataRender(stateFlowHolder, roomHolder, gameViewModel)
         }
-
-        //requireNotNull(stateFlowHolder)
-        //requireNotNull(levelProgress)
-        ////requireNotNull(soundPoolPlayer)
 
         val coordinateState = stateFlowHolder.coordinatesStateFlow.coordinates
         val nowAtState = coordinateState.collectAsStateWithLifecycle()
@@ -394,14 +382,14 @@ fun RenderGameScreen(
                 .padding(all = 0.dp),
             onSolutionClick = { onSolutionClicked(stateFlowHolder, gameViewModel) },
             onRenderClick = { stateFlowHolder.renderStateFlow.setRenderer(currentRenderer.value.next()) },
-            onZoomClick = {}, //Log.d("GameInput", "Zoom Clicked") },
-            onHistoryClick = {}, // Log.d("GameInput", "History Clicked") },
+            onZoomClick = {},
+            onHistoryClick = {},
 
-            onLeftClickOffset = { setOffsetBy(stateFlowHolder, -1, 0) },
-            onRightClickOffset = { setOffsetBy(stateFlowHolder, +1, 0) },
-            onUpClickOffset = { setOffsetBy(stateFlowHolder, 0, -1) },
-            onCenterClickOffset = { resetOffset(stateFlowHolder) }, //, soundPoolPlayer) },
-            onDownClickOffset = { setOffsetBy(stateFlowHolder, 0, +1) },
+            onLeftClickOffset = { moveOffsetBy(stateFlowHolder, -1, 0) },
+            onRightClickOffset = { moveOffsetBy(stateFlowHolder, +1, 0) },
+            onUpClickOffset = { moveOffsetBy(stateFlowHolder, 0, -1) },
+            onCenterClickOffset = { resetOffset(stateFlowHolder) },
+            onDownClickOffset = { moveOffsetBy(stateFlowHolder, 0, +1) },
 
             onLeftClickSolution = {
                 setSolutionDelta(
@@ -419,7 +407,6 @@ fun RenderGameScreen(
                     +1
                 )
             },
-            //onSliderSolution = { data -> setSolutionIndex(stateFlowHolder, levelProgress, data) }, // FIXME never used!!!!
             onDeleteHistory = {
                 gameViewModel.viewModelScope.safeLaunch {
                     gameViewModel.updateRoomLevel(done = false, history = MovementHistory(emptyList()), deleteHistory = true) // help should stay
@@ -429,7 +416,6 @@ fun RenderGameScreen(
                 }
             },
         )
-
     }
 }
 
@@ -476,7 +462,7 @@ private suspend fun performRepeatedSwipeAction(
     // This assumes the coroutine calling this is active.
     // The `isActive` check from `kotlinx.coroutines.isActive` is implicitly
     // handled by cancellable suspending functions like `delay`.
-    // If the coroutine is canceled, delay will throw CancellationException.
+    // If the coroutine is cancelled, delay will throw CancellationException.
     while (true) { // Loop will be broken by coroutine cancellation
         handleSwipeAction(initialDeltaX, initialDeltaY, stateFlowHolder, gameViewModel)
         delay(dragRepeatIntervalMillis.milliseconds)

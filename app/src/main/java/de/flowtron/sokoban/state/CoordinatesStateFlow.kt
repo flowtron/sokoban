@@ -6,13 +6,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class CoordinatesStateFlow {
-    private val mutableCoordinatesStateFlow: MutableStateFlow<Coordinates?> = MutableStateFlow(Coordinates(0,0))//MutableStateFlow(null)
+    private val mutableCoordinatesStateFlow: MutableStateFlow<Coordinates?> = MutableStateFlow(Coordinates(0,0))
     fun setCoordinates(coordinates: Coordinates?) {
         mutableCoordinatesStateFlow.value = coordinates
     }
 
     val coordinates = mutableCoordinatesStateFlow.asStateFlow()
-    fun showCoordinates() {
-        Log.d("StateFlowHolder", "Coordinates = ${coordinates.value}")
+    fun logCoordinates() {
+        Log.d("CoordinatesStateFlow", "Coordinates = ${coordinates.value}")
     }
 }

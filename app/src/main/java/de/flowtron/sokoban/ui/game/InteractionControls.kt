@@ -146,7 +146,7 @@ fun ZoomControls(
             Slider(
                 value = sliderPosition.value.toFloat(),
                 onValueChange = { newValue ->
-                    stateFlowHolder.scaleStateFlow.setScale(levelData, newValue.toInt())
+                    stateFlowHolder.scaleStateFlow.setScale(levelData, newValue.toInt(), -1)
                 },
                 valueRange = 3f..maxRange,
                 steps = maxRange.toInt() - 3,

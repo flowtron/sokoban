@@ -12,7 +12,7 @@ class OffsetStateFlow {
     }
 
     val offset = mutableOffsetStateFlow.asStateFlow()
-    fun showOffset() {
+    fun logOffset() {
         Log.d("StateFlowHolder", "Offset = ${offset.value}")
     }
 }

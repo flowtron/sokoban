@@ -68,8 +68,6 @@ fun LevelsScreen(
     stateFlowHolder: StateFlowHolder,
     roomHolder: RoomHolder,
     navController: androidx.navigation.NavHostController,
-//    combo: String? = null,
-//    world: String? = null,
 ) {
     val localLevelInfoLiveData: List<RoomLevel> by levelsViewModel.allLevels.observeAsState(
         emptyList()
@@ -94,8 +92,6 @@ fun LevelsScreen(
                     stateFlowHolder,
                     roomHolder,
                     navController,
-//                    combo,
-//                    world,
                 )
             }
             Spacer(modifier = Modifier.size(60.dp))
@@ -110,8 +106,6 @@ fun LevelInfoList(
     stateFlowHolder: StateFlowHolder,
     roomHolder: RoomHolder,
     navController: androidx.navigation.NavHostController = rememberNavController(),
-//    combo: String?,
-//    world: String?,
 ) {
     val providerBG: Color = colorResource(id = R.color.comboProviderBG)
     Column(
@@ -147,38 +141,24 @@ fun ComboHeader(combo: String, providerBG: Color) {
 fun WorldHeader(combo: String, world: String, stateFlowHolder: StateFlowHolder, levels: List<RoomLevel>) {
     val currentHierarchyStateFlow = stateFlowHolder.levelHierarchyStateFlow.hierarchy.collectAsStateWithLifecycle()
     val currentHierarchy = currentHierarchyStateFlow.value
-
     val currentIsAlreadyActive = currentHierarchy.first == combo && currentHierarchy.second == world
-
     val modifier = Modifier.fillMaxWidth(1f)
-    //if(currentIsAlreadyActive){}else{Modifier}
-
     var headerSolved = 0
     var headerHelped = 0
-//    val headerText = if(currentIsAlreadyActive){
-//        world
-//    }else{
-        var solved = 0
-        var helped = 0
-        var levelCount = 0
-        levels.forEach {
-            levelCount++
-            if(it.done){
-                solved++
-            }
-            if(it.help){
-                helped++
-            }
+    var solved = 0
+    var helped = 0
+    var levelCount = 0
+    levels.forEach {
+        levelCount++
+        if(it.done){
+            solved++
         }
-        /*val hadHelp = if(helped > 0){
-            " with help for $helped."
-        }else{
-            "."
-        }*/
-        headerSolved = solved
-        headerHelped = helped
-        //"$world\nSolved $solved of $levelCount$hadHelp"
-//    }
+        if(it.help){
+            helped++
+        }
+    }
+    headerSolved = solved
+    headerHelped = helped
     val border = if(currentIsAlreadyActive) {
         BorderStroke(2.dp, colorResource(id = R.color.levelCurrentActive))
     }else{
@@ -212,7 +192,6 @@ fun WorldHeader(combo: String, world: String, stateFlowHolder: StateFlowHolder, 
                     style = typography.labelSmall,
                     modifier = Modifier.scale(1.75f)
                 )
-
             }
             Column(
                 Modifier.weight(.5f)
@@ -335,8 +314,8 @@ fun levelButtonClick(level: RoomLevel, combo: String, world: String, levelsViewM
     )
     val requestedGameDataInfo = GameDataInfo(
         id = requireNotNull(level.id),
-        requireNotNull(combo),
-        requireNotNull(world),
+        combo,
+        world,
         requireNotNull(level.level)
     )
     if (stateFlowHolder.gameDataInfoStateFlow.gameDataInfo.equals(

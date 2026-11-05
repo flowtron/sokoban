@@ -30,7 +30,7 @@ import kotlin.math.max
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
-    settingsViewModel: SettingsViewModel = hiltViewModel(),
+    //settingsViewModel: SettingsViewModel = hiltViewModel(),
     stateFlowHolder: StateFlowHolder = StateFlowHolder(),
 ) {
     Column(

@@ -14,6 +14,7 @@ class StateFlowHolder @Inject constructor() {
     val gameDataInfoStateFlow = GameDataInfoStateFlow()
 
     val mapFinishedStateFlow = MapFinishedStateFlow()
+    //val map
 
     /*
      * different LEVEL states

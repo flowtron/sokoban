@@ -58,14 +58,21 @@ class LevelParser @Inject constructor() {
     fun expandedLevelFromBinaryData(levelDataOrNull: ByteArray): Triple<LevelData?,Int,Int> {
         val parsedLevelData = parseLevelBinaryDataToLevelData(levelDataOrNull)
         val mutableLevelData = MutableLevelData(requireNotNull(parsedLevelData).data)
-        val levelData = mutableLevelData.toLevelData()
-        //val Pair(edge,scale)
-        val minDimX = (15-levelData.dimensions.x)/2
-        val minDimY = (10-levelData.dimensions.y)/2
+        //val levelData = mutableLevelData.toLevelData()
+        // CAVEAT EMPTOR what is rows and what is cols changes from the read data to our LevelData structure
+        val baseDimY = mutableLevelData.data[0].size
+        val baseDimX = mutableLevelData.data.size
+        // we should explain to ourselves where the 15 and 10 come from … seem somewhat arbitrary
+        // possibly something we measured … but then that would be just one device … sheesh … hack!
+        val minDimX = (15-baseDimX)/2 // (15-levelData.dimensions.x)/2
+        val minDimY = (10-baseDimY)/2 // (10-levelData.dimensions.y)/2
         val minDimEdge = max(2, max(minDimX, minDimY))
-        Log.d("LevelParser", "minDimEdge $minDimEdge (2, $minDimX, $minDimY)")
+        Log.d("LevelParser", "minDimEdge $minDimEdge (2, $minDimX, $minDimY) for ($baseDimX x $baseDimY) core level data")
+
         val edge = mutableLevelData.expand(minDimEdge)
-        val scale = minDimEdge + max(levelData.dimensions.x, levelData.dimensions.y)
+        val levelData = mutableLevelData.toLevelData()
+        val scale = max(levelData.dimensions.x, levelData.dimensions.y) // minDimEdge +
+
         return Triple(levelData, edge, scale)
     }
 

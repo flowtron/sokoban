@@ -8,7 +8,7 @@ import kotlin.math.max
 
 class ScaleStateFlow {
     private val mutableScaleStateFlow: MutableStateFlow<Int> = MutableStateFlow(3)
-    fun setScale(levelData: LevelData, scale: Int) {
+    fun setScale(levelData: LevelData, scale: Int, edge: Int = 0) {
         /*
          * as we were reading StateFlows here directly
            val currentLevelData = levelData.value
@@ -23,8 +23,9 @@ class ScaleStateFlow {
          *
          */
 
-        // we always want an odd scale value so the center is established without rounding
-        val totalMax = 2 + max(levelData.dimensions.x, levelData.dimensions.y)
+        // we always want an odd scale value so the centre is established without rounding …
+        // … do we really need that?
+        val totalMax = max(levelData.dimensions.x, levelData.dimensions.y) // 2 +
         var saneScale = scale.coerceIn(3, totalMax)
         if (saneScale % 2 == 0) saneScale += 1
         if (saneScale > totalMax) saneScale = totalMax - 1

@@ -152,7 +152,7 @@ fun VisualDataRender(stateFlowHolder: StateFlowHolder, roomHolder: RoomHolder, g
         val targetLevel = roomHolder.getRoomStatus()?.lastLevelId
         stateFlowHolder.levelDataStateFlow.showLevelData()
         stateFlowHolder.gameDataInfoStateFlow.showGameDataInfo()
-        stateFlowHolder.coordinatesStateFlow.showCoordinates()
+        stateFlowHolder.coordinatesStateFlow.logCoordinates()
 
         val curGaLeIn = currentGameDataInfo
         if (curGaLeIn != null) {

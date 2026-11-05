@@ -134,7 +134,7 @@ class LevelProgress @Inject constructor(
                 else -> PLAYER.id
             }
 
-            Log.d("LevelProgress", "$from -> $to : $cellFrom / $cellTo")
+            //Log.d("LevelProgress", "$from -> $to : $cellFrom / $cellTo")
             if (cellTo == BOX_ON_GOAL.id || cellTo == BOX.id) {
                 val bufCommentary = withCommentary
                 withCommentary = false
